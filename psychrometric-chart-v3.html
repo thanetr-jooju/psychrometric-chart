@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Psychrometric Calculator + Chart</title>
+  <style>
+    :root {
+      --bg: #eef2f7; --bg2: #f8fafc; --card: #ffffff;
+      --ink: #0f172a; --ink2: #334155; --muted: #64748b;
+      --line: #e2e8f0; --line2: #cbd5e1;
+      --teal: #0d9488; --blue: #2563eb;
+      --blue-tint: #dbeafe; --blue-tint2: #eff6ff;
+      --head: #eef2f7; --head2: #e2e8f0; --zebra: #f8fafc; --row-hover: #f1f5f9;
+      --amber: #d97706; --field-bg: #ffffff; --danger-bg: rgba(239,68,68,0.14);
+      --accent: #0d9488; --accent-h: #0b7d72;
+      /* chart */
+      --plot-bg: #ffffff; --plot-stroke: #e2e8f0; --grid: #eef2f7; --grid2: #e2e8f0;
+      --tick: #475569; --axis: #334155; --sat: #0f172a; --label-ink: #0f172a; --label-halo: #ffffff;
+      --radius: 14px; --radius-sm: 10px;
+      --shadow: 0 1px 2px rgba(15,23,42,0.06), 0 8px 24px rgba(15,23,42,0.06);
+      --font: "Segoe UI", "Noto Sans Thai", "Helvetica Neue", sans-serif;
+      --mono: "Consolas", "SFMono-Regular", ui-monospace, monospace;
+    }
+    [data-theme="dark"] {
+      --bg: #0a1120; --bg2: #0f1830; --card: #131f36;
+      --ink: #e8eefc; --ink2: #c4d0e4; --muted: #8294b2;
+      --line: #243049; --line2: #34425f;
+      --teal: #2dd4bf; --blue: #60a5fa;
+      --blue-tint: #1c3a63; --blue-tint2: #16294a;
+      --head: #182742; --head2: #1f3052; --zebra: #101b30; --row-hover: #1a2a47;
+      --amber: #fbbf24; --field-bg: #0e1a30; --danger-bg: rgba(248,113,113,0.18);
+      --plot-bg: #0b1424; --plot-stroke: #223049; --grid: #16223a; --grid2: #233150;
+      --tick: #8294b2; --axis: #c4d0e4; --sat: #ffffff; --label-ink: #ffffff; --label-halo: #0b1424;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px rgba(0,0,0,0.45);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; min-height: 100%;
+      background: linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--ink); font-family: var(--font); font-size: 15px;
+    }
+    .app { max-width: 1560px; margin: 0 auto; padding: 16px; }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 14px 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+    }
+    .topbar h1 { margin: 0; font-size: clamp(17px, 2.1vw, 23px); letter-spacing: -0.01em; font-weight: 700; }
+    .topbar .sub { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+    .spacer { flex: 1 1 auto; }
+    .field-inline {
+      display: inline-flex; align-items: center; gap: 8px; background: var(--bg2);
+      border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; font-size: 13px; color: var(--ink2);
+    }
+    .field-inline input {
+      width: 70px; border: 0; background: transparent; color: var(--ink);
+      font-family: var(--mono); font-size: 14px; text-align: right; outline: none;
+    }
+    .field-inline .val { font-family: var(--mono); color: var(--teal); font-weight: 700; }
+    .lang-toggle { display: inline-flex; background: var(--bg2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 3px; }
+    .lang-toggle button {
+      border: 0; background: transparent; color: var(--muted); padding: 6px 13px; border-radius: 999px;
+      cursor: pointer; font-weight: 700; font-size: 13px; font-family: var(--font);
+    }
+    .lang-toggle button.active { background: var(--accent); color: #fff; }
+
+    /* ---------- Tabs (mobile) ---------- */
+    .tabs { display: none; gap: 8px; margin-bottom: 14px; }
+    .tabs button {
+      flex: 1; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+      padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 700; font-size: 15px; font-family: var(--font);
+    }
+    .tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .workspace { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 14px; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .card-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    .card-head .hint { color: var(--muted); font-size: 12.5px; }
+    .card-head .hint b { color: var(--teal); }
+
+    /* ---------- Chart ---------- */
+    .chart-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 999px;
+      background: var(--bg2); border: 1px solid var(--line); color: var(--ink2); font-size: 13px; cursor: pointer; user-select: none;
+    }
+    .chip:hover { border-color: var(--line2); }
+    .chip input { accent-color: var(--teal); width: 15px; height: 15px; }
+    .iconbtn {
+      width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--line); background: var(--card);
+      color: var(--ink2); font-size: 18px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono);
+    }
+    .iconbtn:hover { background: var(--bg2); border-color: var(--line2); }
+    .iconbtn.wide { width: auto; padding: 0 13px; font-size: 13px; font-family: var(--font); font-weight: 700; }
+
+    .chart-wrap {
+      position: relative; width: 100%; aspect-ratio: 4 / 3; min-height: 360px; border-radius: 12px; overflow: hidden;
+      touch-action: none; background: var(--plot-bg); border: 1px solid var(--line); cursor: crosshair;
+    }
+    svg { width: 100%; height: 100%; display: block; }
+
+    .readout {
+      position: absolute; top: 10px; left: 10px; z-index: 5; background: var(--card);
+      border: 1px solid var(--line); border-radius: 11px; padding: 9px 12px; font-size: 12px; min-width: 172px;
+      pointer-events: none; box-shadow: var(--shadow);
+    }
+    .readout .ro-title { font-weight: 700; color: var(--teal); margin-bottom: 6px; }
+    .readout .ro-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; }
+    .readout .ro-grid .k { color: var(--muted); }
+    .readout .ro-grid .v { font-family: var(--mono); text-align: right; color: var(--ink); }
+    .readout.idle { opacity: 0.7; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 12px 2px 2px; color: var(--muted); font-size: 12.5px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 16px; height: 4px; border-radius: 2px; }
+    .swatch.dot { width: 12px; height: 12px; border-radius: 999px; }
+
+    /* ---------- Data ---------- */
+    .room-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+    .mini-field { background: var(--bg2); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; display: grid; gap: 5px; }
+    .mini-field label { color: var(--muted); font-size: 11px; font-weight: 600; }
+    .mini-field input {
+      border: 1px solid var(--line2); border-radius: 7px; background: var(--field-bg); color: var(--ink);
+      padding: 7px 9px; font-family: var(--mono); width: 100%; font-size: 13px; outline: none; text-align: right;
+    }
+    .mini-field input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint2); }
+
+    .data-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .btn {
+      border: 1px solid var(--line); background: var(--card); color: var(--ink2); padding: 9px 14px;
+      border-radius: 9px; cursor: pointer; font-size: 13px; font-weight: 700; font-family: var(--font);
+    }
+    .btn:hover { background: var(--bg2); border-color: var(--line2); }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-h); }
+
+    .table-scroll { overflow: auto; border: 1px solid var(--line); border-radius: 11px; max-height: 74vh; }
+
+    /* theme toggle */
+    .theme-toggle .ic { display: none; align-items: center; }
+    .theme-toggle .ic-moon { display: inline-flex; }
+    [data-theme="dark"] .theme-toggle .ic-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .ic-sun { display: inline-flex; }
+
+    /* collapsible comfort zone */
+    .card-head.toggler { cursor: pointer; user-select: none; }
+    .chev { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent;
+      border-top: 7px solid var(--muted); transition: transform 0.15s ease; flex: none; }
+    .card-head.toggler.collapsed .chev { transform: rotate(-90deg); }
+    table.states { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+    table.states th, table.states td { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 0; text-align: center; white-space: nowrap; }
+    /* grouped category header */
+    table.states thead .cat-row th {
+      position: sticky; top: 0; z-index: 4; background: var(--head2); color: var(--ink2);
+      padding: 7px 8px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid var(--line2);
+    }
+    table.states thead .lbl-row th {
+      position: sticky; top: 30px; z-index: 4; background: var(--head); color: var(--ink); padding: 7px 9px; font-weight: 700;
+      border-bottom: 1px solid var(--line2);
+    }
+    table.states thead .lbl-row th .u { display: block; color: var(--muted); font-weight: 600; font-size: 10px; font-family: var(--mono); margin-top: 1px; }
+    table.states tbody td { background: var(--card); color: var(--ink); }
+    table.states tbody tr:nth-child(even) td { background: var(--zebra); }
+    table.states tbody tr:hover td { background: var(--row-hover); }
+    table.states tbody tr:focus-within td { background: var(--blue-tint2); }
+    /* sticky State column */
+    table.states th:first-child, table.states td:first-child { position: sticky; left: 0; z-index: 3; }
+    table.states thead th:first-child { z-index: 6; }
+    table.states tbody td:first-child { box-shadow: 2px 0 0 rgba(15,23,42,0.05); }
+    /* number cells right aligned */
+    table.states td.num { text-align: right; padding: 8px 10px; font-family: var(--mono); }
+    table.states td.num.dash { color: #cbd5e1; }
+    table.states td.txt { padding: 8px 10px; font-family: var(--mono); }
+    /* editable cells */
+    table.states td.ed, table.states tbody tr:nth-child(even) td.ed { background: var(--blue-tint); }
+    table.states td.ed input {
+      width: 100%; min-width: 58px; border: 0; min-height: 36px; padding: 7px 9px; background: transparent;
+      color: var(--ink); font-family: var(--mono); font-size: 12.5px; font-weight: 600; outline: none;
+    }
+    table.states td.ed input.numinput { text-align: right; }
+    table.states td.ed input:focus { box-shadow: inset 0 0 0 2px var(--blue); border-radius: 4px; }
+    table.states td:first-child.ed input { font-weight: 800; }
+    table.states .delcol { width: 36px; }
+    table.states tbody td.delcell { background: var(--card); }
+    table.states tbody tr:nth-child(even) td.delcell { background: var(--zebra); }
+    .del-btn { border: 0; background: transparent; color: #ef4444; cursor: pointer; font-size: 16px; line-height: 1; padding: 6px; border-radius: 6px; }
+    .del-btn:hover { background: var(--danger-bg); }
+
+    /* card layout (mobile) */
+    .state-cards { display: none; flex-direction: column; gap: 12px; }
+    .state-card { border: 1px solid var(--line); border-left-width: 5px; border-radius: 11px; padding: 12px; background: var(--card); }
+    .state-card .sc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .state-card .sc-head strong { font-size: 14px; }
+    .sc-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 11px; }
+    .sc-out { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .sc-out .cell { background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; }
+    .sc-out .cell .k { color: var(--muted); font-size: 10px; font-weight: 600; }
+    .sc-out .cell .k .u { color: #94a3b8; }
+    .sc-out .cell .v { font-family: var(--mono); font-size: 13.5px; font-weight: 600; text-align: right; }
+
+    .footer-note { color: var(--muted); font-size: 11.5px; line-height: 1.7; margin-top: 12px; }
+    .footer-note .blue-chip { display: inline-block; width: 11px; height: 11px; border-radius: 3px; background: var(--blue-tint); border: 1px solid var(--blue); vertical-align: -1px; }
+
+    /* SVG element styles (theme-aware) */
+    .plot-bg { fill: var(--plot-bg); stroke: var(--plot-stroke); }
+    .grid-line { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
+    .grid-line.major { stroke: var(--grid2); }
+    .tick-text { fill: var(--tick); font-size: 12px; }
+    .axis-text { fill: var(--axis); font-size: 13px; font-weight: 600; }
+    .saturation-line { fill: none; stroke: var(--sat); stroke-width: 2.2; }
+    .rh-line { fill: none; stroke: #60a5fa; stroke-width: 1; }
+    .rh-label { fill: var(--blue); font-size: 10px; font-weight: 600; }
+    .enthalpy-line { fill: none; stroke: #2dd4bf; stroke-width: 1; stroke-dasharray: 5 4; }
+    .wetbulb-line { fill: none; stroke: #f59e0b; stroke-width: 1; stroke-dasharray: 3 4; }
+    .room-fill { fill: rgba(13,148,136,0.14); stroke: #14b8a6; stroke-width: 1.6; }
+    .process-line { fill: none; stroke-width: 2.6; opacity: 0.95; }
+    .coil-line { fill: none; stroke-width: 1.6; stroke-dasharray: 5 4; opacity: 0.9; }
+    .coil-marker { stroke: var(--plot-bg); stroke-width: 1.6; }
+    .state-dot { stroke: var(--plot-bg); stroke-width: 2; cursor: pointer; }
+    .cross-dot { fill: var(--teal); }
+    .state-label { font-size: 13px; font-weight: 800; fill: var(--label-ink); paint-order: stroke; stroke: var(--label-halo); stroke-width: 3.4px; stroke-linejoin: round; }
+    .crosshair { stroke: var(--teal); stroke-width: 1; stroke-dasharray: 4 4; opacity: 0.75; }
+    .hl-ring { fill: none; stroke: var(--ink); stroke-width: 2; }
+
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .tabs { display: flex; }
+      .pane.data-pane { display: none; }
+      body.show-data .pane.chart-pane { display: none; }
+      body.show-data .pane.data-pane { display: block; }
+      .room-grid { grid-template-columns: repeat(2, 1fr); }
+      .table-scroll { display: none; }
+      .state-cards { display: flex; }
+      .chart-wrap { aspect-ratio: 1 / 1; }
+    }
+    @media (max-width: 520px) { .app { padding: 10px; } .field-inline input { width: 56px; } }
+    @media print {
+      :root, [data-theme="dark"] {
+        --bg:#fff; --bg2:#fff; --card:#fff; --ink:#0f172a; --ink2:#334155; --muted:#475569;
+        --line:#cbd5e1; --line2:#94a3b8; --head:#eef2f7; --head2:#e2e8f0; --zebra:#f8fafc;
+        --blue-tint:#dbeafe; --blue-tint2:#eff6ff; --row-hover:#f1f5f9; --field-bg:#fff;
+        --plot-bg:#fff; --plot-stroke:#cbd5e1; --grid:#eef2f7; --grid2:#e2e8f0;
+        --tick:#475569; --axis:#334155; --sat:#0f172a; --label-ink:#0f172a; --label-halo:#fff;
+      }
+      body { background: #fff; }
+      .topbar, .tabs, .chart-controls, .data-actions, .lang-toggle { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #cbd5e1; }
+      .pane.chart-pane, .pane.data-pane { display: block !important; }
+      .table-scroll { display: block !important; max-height: none; overflow: visible; }
+      .state-cards { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <h1 data-i18n="appTitle">แผนภูมิไซโครเมตริก + เครื่องคำนวณ</h1>
+        <div class="sub" data-i18n="appSubtitle">ลากจุดเพื่อแก้ค่า · เลื่อนเมาส์อ่านค่า · ลากที่ว่างเพื่อเลื่อน · สกอลล์ซูม</div>
+      </div>
+      <div class="spacer"></div>
+      <label class="field-inline" title="Altitude / ความสูงเหนือระดับน้ำทะเล">
+        <span data-i18n="altitude">ความสูง</span>
+        <input id="altitudeInput" type="number" step="1" value="0" /><span>m</span>
+      </label>
+      <div class="field-inline" title="Atmospheric pressure / ความดันบรรยากาศ">
+        <span>P</span><span class="val" id="pressureOut">101.325</span><span>kPa</span>
+      </div>
+      <button class="iconbtn theme-toggle" id="themeToggle" title="Light / Dark" aria-label="Toggle dark mode">
+        <span class="ic ic-moon"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></span>
+        <span class="ic ic-sun"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.2 17.2 18.6 18.6M18.6 5.4 17.2 6.8M6.8 17.2 5.4 18.6"/></svg></span>
+      </button>
+      <div class="lang-toggle" id="langToggle">
+        <button data-lang="th" class="active">ไทย</button>
+        <button data-lang="en">EN</button>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button id="tabChart" class="active" data-i18n="tabChart">กราฟ</button>
+      <button id="tabData" data-i18n="tabData">ข้อมูล / ตาราง</button>
+    </div>
+
+    <div class="workspace">
+      <div class="pane chart-pane">
+        <div class="card">
+          <div class="card-head">
+            <h2 data-i18n="chartTitle">แผนภูมิไซโครเมตริก</h2>
+            <span class="hint"><b id="plotCount">0</b> <span data-i18n="points">จุด</span></span>
+          </div>
+          <div class="chart-controls">
+            <label class="chip"><input id="showRh" type="checkbox" checked /> <span data-i18n="showRh">เส้น RH</span></label>
+            <label class="chip"><input id="showEnthalpy" type="checkbox" checked /> <span data-i18n="showEnthalpy">เส้น Enthalpy</span></label>
+            <label class="chip"><input id="showWetBulb" type="checkbox" checked /> <span data-i18n="showWetBulb">เส้น Wet bulb</span></label>
+            <label class="chip"><input id="showRoom" type="checkbox" checked /> <span data-i18n="showRoom">โซน Comfort</span></label>
+            <span class="spacer"></span>
+            <button class="iconbtn" id="zoomOut" title="Zoom out">−</button>
+            <button class="iconbtn" id="zoomIn" title="Zoom in">+</button>
+            <button class="iconbtn wide" id="resetView" data-i18n="reset">รีเซ็ต</button>
+          </div>
+          <div class="chart-wrap" id="chartWrap">
+            <svg id="chart" viewBox="0 0 1200 900" role="img" aria-label="Psychrometric chart"></svg>
+            <div class="readout idle" id="readout">
+              <div class="ro-title" id="roTitle">—</div>
+              <div class="ro-grid" id="roGrid"></div>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><span class="swatch" style="background:#0f172a"></span><span data-i18n="legSat">เส้นอิ่มตัว (100% RH)</span></div>
+            <div class="legend-item"><span class="swatch" style="background:#60a5fa"></span>RH</div>
+            <div class="legend-item"><span class="swatch" style="background:#2dd4bf"></span>Enthalpy</div>
+            <div class="legend-item"><span class="swatch" style="background:#fbbf24"></span><span data-i18n="legWb">Wet bulb</span></div>
+            <div class="legend-item"><span class="swatch dot" style="background:#dc2626"></span><span data-i18n="legProc">จุด/เส้นกระบวนการ</span></div>
+            <div class="legend-item"><span class="swatch" style="background:rgba(13,148,136,0.4)"></span><span data-i18n="legRoom">โซน Comfort</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane data-pane">
+        <div class="card">
+          <div class="card-head toggler collapsed" id="roomToggle">
+            <h2 data-i18n="roomZone">โซนสภาวะสบาย (Comfort zone)</h2>
+            <span class="chev"></span>
+          </div>
+          <div class="room-grid" id="roomGrid" style="display:none;">
+            <div class="mini-field"><label>Tdb min (°C)</label><input id="roomTMin" type="number" value="22" step="0.1" /></div>
+            <div class="mini-field"><label>Tdb max (°C)</label><input id="roomTMax" type="number" value="28" step="0.1" /></div>
+            <div class="mini-field"><label>RH min (%)</label><input id="roomRHMin" type="number" value="40" step="1" /></div>
+            <div class="mini-field"><label>RH max (%)</label><input id="roomRHMax" type="number" value="70" step="1" /></div>
+          </div>
+          <div class="card-head" style="margin-top:4px;"><h2 data-i18n="statePoints">จุดสภาวะอากาศ (State points)</h2></div>
+          <div class="data-actions">
+            <button class="btn primary" id="addState" data-i18n="addState">+ เพิ่มจุด</button>
+            <label class="chip"><input id="showAdvanced" type="checkbox" /> <span data-i18n="advCols">คอลัมน์ขั้นสูง</span></label>
+            <span class="spacer"></span>
+            <button class="btn" id="exportCsv" data-i18n="exportCsv">CSV</button>
+            <button class="btn" id="exportPdf" data-i18n="print">พิมพ์/PDF</button>
+          </div>
+          <div class="table-scroll"><table class="states" id="statesTable"></table></div>
+          <div class="state-cards" id="stateCards"></div>
+          <div class="footer-note" data-i18n="footer">
+            <span class="blue-chip"></span> ช่องสีฟ้าคือค่าที่แก้ไขได้ · คอลัมน์ที่เหลือคำนวณอัตโนมัติ · "Join" เชื่อมจุดเป็นเส้นกระบวนการ · "Mix/Coil" + "Bypass" ใช้คำนวณจุดคอยล์
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* ===== PHYSICS — ported from the VBA workbook (wet-bulb fine-loop cap raised to 30000 for convergence) ===== */
+  function pressureFromAltitude(altitude){return 101.325*Math.pow(1-0.0000225577*altitude,5.2559);}
+  function saturationPressure(dryBulb){const tk=dryBulb+273.15;if(dryBulb>=0){return Math.exp(-5800.2206/tk+1.3914993+-0.048640239*tk+0.000041764768*tk*tk+-0.000000014452093*tk*tk*tk+6.5459673*Math.log(tk))/1000;}return Math.exp(-5674.5359/tk+6.3925247+-0.009677843*tk+0.000000622157*tk*tk+2.0747825e-9*tk*tk*tk+-9.484024e-13*tk*tk*tk*tk+4.1635019*Math.log(tk))/1000;}
+  function humidityRatioFromVapourPressure(vp,p){return 0.621945*vp/(p-vp);}
+  function partialVapourPressureFromMoisture(p,mc){return p*mc/(0.621945+mc);}
+  function relativeHumidityFromVapourPressure(pp,sp){return pp/sp*100;}
+  function humidityRatioFromState(d,rh,p){return humidityRatioFromVapourPressure(saturationPressure(d)*(rh/100),p);}
+  function moistureContentFromWetBulb(wb,hr,d){if(d<=0){return((2830-0.24*wb)*hr-1.006*(d-wb))/(2830+1.86*d-2.1*wb);}return((2501-2.326*wb)*hr-1.006*(d-wb))/(2501+1.86*d-4.186*wb);}
+  function dryBulbVapourPressureFromWetBulb(wb){return saturationPressure(wb);}
+  function enthalpyFromState(d,mc){return 1.006*d+mc*(2501+1.86*d);}
+  function specificVolumeFromState(d,mc,p){return 0.287042*(d+273.15)*(1+1.607858*mc)/p;}
+  function dewPointFromVapourPressure(pp,d){if(d<=93&&d>=0){return 6.54+14.526*Math.log(pp)+0.7389*Math.pow(Math.log(pp),2)+0.09486*Math.pow(Math.log(pp),3)+0.4569*Math.pow(pp,0.1984);}if(d<0&&d>=-273.15){return 6.09+12.608*Math.log(pp)+0.4959*Math.pow(Math.log(pp),2);}return 0;}
+  function wetBulbFromState(altitude,dryBulb,relativeHumidity){
+    if(!Number.isFinite(dryBulb)||!Number.isFinite(relativeHumidity))return null;
+    if(relativeHumidity>=100)return dryBulb;
+    let wetBulb=dryBulb,wetBulb1=wetBulb,humidityLoop=0,x=1;
+    const pressure=pressureFromAltitude(altitude);const saturated=saturationPressure(dryBulb);
+    while(humidityLoop+1<=relativeHumidity&&x<2000){wetBulb=dryBulb-(0.1*x);const hr=humidityRatioFromVapourPressure(dryBulbVapourPressureFromWetBulb(wetBulb),pressure);const mc=moistureContentFromWetBulb(wetBulb,hr,dryBulb);humidityLoop=relativeHumidityFromVapourPressure(partialVapourPressureFromMoisture(pressure,mc),saturated);x+=1;}
+    wetBulb1=wetBulb;
+    while((humidityLoop+0.1<=relativeHumidity||humidityLoop-0.1>=relativeHumidity)&&x<30000){wetBulb=wetBulb1-(0.001*x);const hr=humidityRatioFromVapourPressure(dryBulbVapourPressureFromWetBulb(wetBulb),pressure);const mc=moistureContentFromWetBulb(wetBulb,hr,dryBulb);humidityLoop=relativeHumidityFromVapourPressure(partialVapourPressureFromMoisture(pressure,mc),saturated);x+=1;}
+    return wetBulb;
+  }
+  function moistureContentFromEnthalpy(enthalpy,dryBulb){return(enthalpy-(1.006*dryBulb))/(2501+1.86*dryBulb);}
+  function lineYAtX(x1,y1,x2,y2,x){if(x1===x2)return y1;const s=(y1-y2)/(x1-x2);return s*x+(y1-s*x1);}
+
+  /* ===== STATE / DATA ===== */
+  const PHYS = { tMin: -10, tMax: 50, wMin: 0, wMax: 0.03 };
+  const INNER = { x: 92, y: 60, w: 1024, h: 770 };
+  const COLORS = ["#dc2626","#2563eb","#059669","#d97706","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#4338ca","#0d9488","#a16207"];
+
+  const INITIAL_ROWS = [
+    { id: "1", joinTo: "2", db: 34.9, rh: 33.4, flow: 0.378, mixRef: "7", bypass: 80 },
+    { id: "2", joinTo: "3", db: 23, rh: 55.06, flow: 1.89, mixRef: "", bypass: null },
+    { id: "3", joinTo: "4", db: 14, rh: 85.5, flow: 1.89, mixRef: "", bypass: null },
+    { id: "4", joinTo: "5", db: 15, rh: 81.3, flow: 1.89, mixRef: "", bypass: null },
+    { id: "5", joinTo: "6", db: 11, rh: 98.5, flow: 1.89, mixRef: "", bypass: null },
+    { id: "6", joinTo: "7", db: 11.34, rh: 96.7, flow: 1.89, mixRef: "", bypass: null },
+    { id: "7", joinTo: "2", db: 17.89, rh: 63.4, flow: 1.512, mixRef: "1", bypass: 20 },
+  ];
+
+  const COLUMNS = [
+    { key: "id", label: "State", cat: "state", unit: "", group: "in", edit: true, type: "text" },
+    { key: "joinTo", label: "Join", cat: "input", unit: "→", group: "in", edit: true, type: "text", title: { th: "เชื่อมไปยังจุด", en: "Join to state" } },
+    { key: "db", label: "Tdb", cat: "input", unit: "°C", group: "in", edit: true, type: "number", dec: 2, title: { th: "อุณหภูมิกระเปาะแห้ง", en: "Dry bulb" } },
+    { key: "rh", label: "RH", cat: "input", unit: "%", group: "in", edit: true, type: "number", dec: 2, title: { th: "ความชื้นสัมพัทธ์", en: "Relative humidity" } },
+    { key: "twb", label: "Twb", cat: "prop", unit: "°C", group: "ess", dec: 2, title: { th: "อุณหภูมิกระเปาะเปียก", en: "Wet bulb" } },
+    { key: "w", label: "W", cat: "prop", unit: "kg/kg", group: "ess", dec: 5, title: { th: "อัตราส่วนความชื้น", en: "Humidity ratio" } },
+    { key: "h", label: "h", cat: "prop", unit: "kJ/kg", group: "ess", dec: 2, title: { th: "เอนทาลปี", en: "Enthalpy" } },
+    { key: "v", label: "v", cat: "prop", unit: "m³/kg", group: "ess", dec: 4, title: { th: "ปริมาตรจำเพาะ", en: "Specific volume" } },
+    { key: "td", label: "Td", cat: "prop", unit: "°C", group: "ess", dec: 2, title: { th: "จุดน้ำค้าง", en: "Dew point" } },
+    { key: "flow", label: "Air V", cat: "load", unit: "m³/s", group: "in", edit: true, type: "number", dec: 3, title: { th: "อัตราการไหลอากาศ", en: "Air volume flow" } },
+    { key: "flowCfm", label: "CFM", cat: "load", unit: "ft³/min", group: "ess", dec: 0, title: { th: "อัตราการไหล CFM", en: "Air flow CFM" } },
+    { key: "dutyKw", label: "Duty", cat: "load", unit: "kW", group: "ess", dec: 2, title: { th: "ภาระความร้อน", en: "Duty" } },
+    { key: "dutyBtu", label: "Duty", cat: "load", unit: "BTU/h", group: "ess", dec: 0, title: { th: "ภาระความร้อน", en: "Duty" } },
+    { key: "mixRef", label: "Mix/Coil", cat: "proc", unit: "", group: "in", edit: true, type: "text", title: { th: "อ้างอิงการผสม/คอยล์", en: "Mix / coil reference" } },
+    { key: "bypass", label: "Bypass", cat: "proc", unit: "%", group: "in", edit: true, type: "number", dec: 1, title: { th: "บายพาส", en: "Bypass factor" } },
+    { key: "p", label: "P", cat: "adv", unit: "kPa", group: "adv", dec: 3, title: { th: "ความดัน", en: "Pressure" } },
+    { key: "pw", label: "Pw", cat: "adv", unit: "kPa", group: "adv", dec: 5, title: { th: "ความดันไอย่อย", en: "Partial vapour pressure" } },
+    { key: "pwst", label: "Pws*", cat: "adv", unit: "kPa", group: "adv", dec: 5, title: { th: "Pws ที่ Tdb", en: "Sat. pressure at Tdb" } },
+    { key: "ws", label: "Ws*", cat: "adv", unit: "kg/kg", group: "adv", dec: 5, title: { th: "อัตราส่วนความชื้นอิ่มตัว", en: "Sat. humidity ratio" } },
+    { key: "coilDb", label: "Coil Tdb", cat: "adv", unit: "°C", group: "adv", dec: 2, title: { th: "Tdb ที่คอยล์", en: "Coil dry bulb" } },
+    { key: "coilRh", label: "Coil RH", cat: "adv", unit: "%", group: "adv", dec: 1, title: { th: "RH ที่คอยล์", en: "Coil RH" } },
+  ];
+
+  const state = {
+    altitude: 0, lang: "th", showAdvanced: false,
+    rows: INITIAL_ROWS.map((r) => ({ ...r })), computedRows: [], view: { ...PHYS },
+  };
+
+  const I18N = {
+    th: {
+      appTitle: "แผนภูมิไซโครเมตริก + เครื่องคำนวณ",
+      appSubtitle: "ลากจุดเพื่อแก้ค่า · เลื่อนเมาส์อ่านค่า · ลากที่ว่างเพื่อเลื่อน · สกอลล์ซูม",
+      altitude: "ความสูง", tabChart: "กราฟ", tabData: "ข้อมูล / ตาราง", chartTitle: "แผนภูมิไซโครเมตริก", points: "จุด",
+      showRh: "เส้น RH", showEnthalpy: "เส้น Enthalpy", showWetBulb: "เส้น Wet bulb", showRoom: "โซน Comfort",
+      reset: "รีเซ็ต", legSat: "เส้นอิ่มตัว (100% RH)", legWb: "Wet bulb", legProc: "จุด/เส้นกระบวนการ", legRoom: "โซน Comfort",
+      roomZone: "โซนสภาวะสบาย (Comfort zone)", statePoints: "จุดสภาวะอากาศ (State points)",
+      addState: "+ เพิ่มจุด", advCols: "คอลัมน์ขั้นสูง", exportCsv: "CSV", print: "พิมพ์/PDF",
+      footer: "ช่องสีฟ้าคือค่าที่แก้ไขได้ · คอลัมน์ที่เหลือคำนวณอัตโนมัติ · \"Join\" เชื่อมจุดเป็นเส้นกระบวนการ · \"Mix/Coil\" + \"Bypass\" ใช้คำนวณจุดคอยล์",
+      cursor: "ตำแหน่งเคอร์เซอร์", superSat: "เกินเส้นอิ่มตัว", axisX: "อุณหภูมิกระเปาะแห้ง Tdb (°C)", axisY: "อัตราส่วนความชื้น W (kg/kg)", delTitle: "ลบจุดนี้",
+      cat_state: "สภาวะ", cat_input: "ค่าที่กรอก", cat_prop: "คุณสมบัติ", cat_load: "ภาระ / อากาศ", cat_proc: "กระบวนการ", cat_adv: "ขั้นสูง",
+    },
+    en: {
+      appTitle: "Psychrometric Chart + Calculator",
+      appSubtitle: "Drag a point to edit · hover to read · drag empty space to pan · scroll to zoom",
+      altitude: "Altitude", tabChart: "Chart", tabData: "Data / Table", chartTitle: "Psychrometric Chart", points: "points",
+      showRh: "RH lines", showEnthalpy: "Enthalpy lines", showWetBulb: "Wet bulb lines", showRoom: "Comfort zone",
+      reset: "Reset", legSat: "Saturation (100% RH)", legWb: "Wet bulb", legProc: "Process point / line", legRoom: "Comfort zone",
+      roomZone: "Comfort zone", statePoints: "State points",
+      addState: "+ Add point", advCols: "Advanced columns", exportCsv: "CSV", print: "Print / PDF",
+      footer: "Blue cells are editable · other columns recalc automatically · \"Join\" draws a process line · \"Mix/Coil\" + \"Bypass\" derive the coil point.",
+      cursor: "Cursor position", superSat: "Above saturation", axisX: "Dry bulb temperature Tdb (°C)", axisY: "Humidity ratio W (kg/kg)", delTitle: "Delete this point",
+      cat_state: "State", cat_input: "Inputs", cat_prop: "Properties", cat_load: "Load / Air", cat_proc: "Process", cat_adv: "Advanced",
+    },
+  };
+  const t = (k) => (I18N[state.lang][k] ?? k);
+  const catLabel = (c) => t("cat_" + c);
+
+  const els = {};
+  ["altitudeInput","pressureOut","plotCount","chart","chartWrap","readout","roTitle","roGrid",
+   "showRh","showEnthalpy","showWetBulb","showRoom","zoomIn","zoomOut","resetView",
+   "roomTMin","roomTMax","roomRHMin","roomRHMax","addState","showAdvanced","exportCsv","exportPdf",
+   "statesTable","stateCards","tabChart","tabData","langToggle","themeToggle","roomToggle","roomGrid"].forEach((id) => els[id] = document.getElementById(id));
+
+  const num = (v) => { if (v === "" || v == null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
+  const fmt = (v, d = 2) => (Number.isFinite(v) ? v.toFixed(d) : "–");
+  const nf = (v, d = 2) => (Number.isFinite(v) ? v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }) : "–");
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const normKey = (v) => String(v || "").trim().toUpperCase();
+  const esc = (v) => String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+  function hasBaseInputs(r) { return normKey(r.id) && Number.isFinite(r.db) && Number.isFinite(r.rh); }
+
+  function computeRowBase(row, altitude) {
+    if (!hasBaseInputs(row)) return { ...row, flowCfm: Number.isFinite(row.flow) ? row.flow * 2118.882 : null, p:null,twb:null,h:null,w:null,v:null,td:null,pw:null,pwst:null,ws:null,dutyKw:null,dutyBtu:null,coilDb:null,coilRh:null,coilW:null };
+    const p = pressureFromAltitude(altitude);
+    const twb = wetBulbFromState(altitude, row.db, row.rh);
+    const pwst = saturationPressure(row.db);
+    const pwstWet = dryBulbVapourPressureFromWetBulb(twb);
+    const ws = humidityRatioFromVapourPressure(pwstWet, p);
+    const w = moistureContentFromWetBulb(twb, ws, row.db);
+    const h = enthalpyFromState(row.db, w);
+    const v = specificVolumeFromState(row.db, w, p);
+    const pw = partialVapourPressureFromMoisture(p, w);
+    const td = dewPointFromVapourPressure(pw, row.db);
+    const flowCfm = Number.isFinite(row.flow) ? row.flow * 2118.882 : null;
+    return { ...row, flowCfm, p, twb, h, w, v, td, pw, pwst, ws, dutyKw:null, dutyBtu:null, coilDb:null, coilRh:null, coilW:null };
+  }
+
+  function computeRows() {
+    const base = state.rows.map((r) => computeRowBase(r, state.altitude));
+    const map = new Map();
+    base.forEach((r) => { const k = normKey(r.id); if (k) map.set(k, r); });
+    state.computedRows = base.map((row) => {
+      if (!hasBaseInputs(row)) return row;
+      const joined = map.get(normKey(row.joinTo));
+      const mixTarget = map.get(normKey(row.mixRef));
+      const joinDb = joined ? joined.db : null;
+      const joinRh = joined && Number.isFinite(row.w)
+        ? relativeHumidityFromVapourPressure(partialVapourPressureFromMoisture(joined.p, row.w), saturationPressure(joined.db)) : null;
+      const dutyKw = joined && Number.isFinite(row.flow) && Number.isFinite(row.v) ? (row.flow / row.v) * (joined.h - row.h) : null;
+      const dutyBtu = Number.isFinite(dutyKw) ? dutyKw * 3412 : null;
+      let coilDb = null;
+      if (Number.isFinite(row.bypass)) {
+        if (normKey(row.mixRef) === "MIX" && joined) coilDb = joined.db * ((100 - row.bypass) / 100) + ((row.bypass / 100) * row.db);
+        else if (mixTarget) coilDb = ((row.bypass / 100) * (mixTarget.db - row.db)) + row.db;
+      }
+      const coilW = joined && Number.isFinite(coilDb) ? lineYAtX(row.db, row.w, joined.db, joined.w, coilDb) : null;
+      const coilRh = Number.isFinite(coilW) && Number.isFinite(coilDb)
+        ? relativeHumidityFromVapourPressure(partialVapourPressureFromMoisture(row.p, coilW), saturationPressure(coilDb)) : null;
+      return { ...row, joined, joinDb, joinRh, dutyKw, dutyBtu, coilDb, coilRh, coilW };
+    });
+  }
+
+  /* ===== coordinate mapping ===== */
+  const V = () => state.view;
+  const mapX = (tdeg) => INNER.x + (tdeg - V().tMin) / (V().tMax - V().tMin) * INNER.w;
+  const mapY = (w) => INNER.y + INNER.h - (w - V().wMin) / (V().wMax - V().wMin) * INNER.h;
+  const invX = (px) => V().tMin + (px - INNER.x) / INNER.w * (V().tMax - V().tMin);
+  const invY = (py) => V().wMin + (INNER.y + INNER.h - py) / INNER.h * (V().wMax - V().wMin);
+  function niceStep(range, target) { const raw = range / target; const pow = Math.pow(10, Math.floor(Math.log10(raw))); for (const c of [1,2,2.5,5,10]) { if (c * pow >= raw) return c * pow; } return 10 * pow; }
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  function E(name, attrs = {}, text) { const el = document.createElementNS(svgNS, name); for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v)); if (text != null) el.textContent = text; return el; }
+  function poly(points, attrs = {}) { return E("polyline", { points: points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" "), ...attrs }); }
+  const inView = (px, py) => px >= INNER.x - 1 && px <= INNER.x + INNER.w + 1 && py >= INNER.y - 1 && py <= INNER.y + INNER.h + 1;
+
+  function drawChart() {
+    const svg = els.chart; svg.innerHTML = "";
+    const pressure = pressureFromAltitude(state.altitude);
+    const v = V();
+    const active = state.computedRows.filter(hasBaseInputs);
+    const defs = E("defs"); const clip = E("clipPath", { id: "cclip" });
+    clip.appendChild(E("rect", { x: INNER.x, y: INNER.y, width: INNER.w, height: INNER.h })); defs.appendChild(clip); svg.appendChild(defs);
+    svg.appendChild(E("rect", { x: INNER.x, y: INNER.y, width: INNER.w, height: INNER.h, rx: 8, class: "plot-bg" }));
+
+    const tStep = niceStep(v.tMax - v.tMin, 10);
+    const wStep = niceStep(v.wMax - v.wMin, 9);
+    const grid = E("g");
+    for (let tg = Math.ceil(v.tMin / tStep) * tStep; tg <= v.tMax + 1e-9; tg += tStep) {
+      const x = mapX(tg);
+      grid.appendChild(E("line", { x1: x, y1: INNER.y, x2: x, y2: INNER.y + INNER.h, class: "grid-line major" }));
+      grid.appendChild(E("text", { x, y: INNER.y + INNER.h + 24, "text-anchor": "middle", class: "tick-text" }, String(Math.round(tg * 100) / 100)));
+    }
+    for (let wg = Math.ceil(v.wMin / wStep) * wStep; wg <= v.wMax + 1e-9; wg += wStep) {
+      const y = mapY(wg);
+      grid.appendChild(E("line", { x1: INNER.x, y1: y, x2: INNER.x + INNER.w, y2: y, class: "grid-line major" }));
+      grid.appendChild(E("text", { x: INNER.x - 12, y: y + 4, "text-anchor": "end", class: "tick-text" }, wg.toFixed(wStep < 0.001 ? 4 : 3)));
+    }
+    svg.appendChild(grid);
+    svg.appendChild(E("text", { x: INNER.x + INNER.w / 2, y: 888, "text-anchor": "middle", class: "axis-text" }, t("axisX")));
+    svg.appendChild(E("text", { x: 22, y: INNER.y + INNER.h / 2, transform: `rotate(-90 22 ${INNER.y + INNER.h / 2})`, "text-anchor": "middle", class: "axis-text" }, t("axisY")));
+
+    const g = E("g", { "clip-path": "url(#cclip)" });
+    if (els.showRoom.checked) drawRoom(g, pressure);
+
+    const sat = [];
+    for (let tt = PHYS.tMin; tt <= PHYS.tMax; tt += 0.25) sat.push([mapX(tt), mapY(humidityRatioFromVapourPressure(saturationPressure(tt), pressure))]);
+    g.appendChild(poly(sat, { class: "saturation-line" }));
+
+    if (els.showRh.checked) {
+      for (let rh = 10; rh <= 90; rh += 10) {
+        const pts = [];
+        for (let tt = PHYS.tMin; tt <= PHYS.tMax; tt += 0.4) { const w = humidityRatioFromState(tt, rh, pressure); const s = humidityRatioFromVapourPressure(saturationPressure(tt), pressure); if (w <= s + 1e-9) pts.push([mapX(tt), mapY(w)]); }
+        if (pts.length > 1) { g.appendChild(poly(pts, { class: "rh-line" })); const last = pts[pts.length - 1]; if (inView(last[0], last[1])) g.appendChild(E("text", { x: last[0] - 4, y: last[1] - 3, "text-anchor": "end", class: "rh-label" }, rh + "%")); }
+      }
+    }
+    if (els.showEnthalpy.checked) {
+      for (let h = 10; h <= 110; h += 10) {
+        const pts = [];
+        for (let tt = PHYS.tMin; tt <= PHYS.tMax; tt += 0.4) { const w = moistureContentFromEnthalpy(h, tt); const s = humidityRatioFromVapourPressure(saturationPressure(tt), pressure); if (w >= PHYS.wMin && w <= s + 1e-9) pts.push([mapX(tt), mapY(w)]); }
+        if (pts.length > 1) g.appendChild(poly(pts, { class: "enthalpy-line" }));
+      }
+    }
+    if (els.showWetBulb.checked) {
+      for (let tw = -5; tw <= 30; tw += 5) {
+        const hs = enthalpyFromState(tw, humidityRatioFromState(tw, 100, pressure));
+        const pts = [];
+        for (let tt = Math.max(tw, PHYS.tMin); tt <= PHYS.tMax; tt += 0.4) { const w = moistureContentFromEnthalpy(hs, tt); const s = humidityRatioFromVapourPressure(saturationPressure(tt), pressure); if (w >= PHYS.wMin && w <= s + 1e-9) pts.push([mapX(tt), mapY(w)]); }
+        if (pts.length > 1) g.appendChild(poly(pts, { class: "wetbulb-line" }));
+      }
+    }
+
+    active.forEach((row, i) => {
+      const color = COLORS[i % COLORS.length];
+      const x = mapX(row.db), y = mapY(row.w);
+      if (row.joined) g.appendChild(E("line", { x1: x, y1: y, x2: mapX(row.joined.db), y2: mapY(row.joined.w), class: "process-line", stroke: color }));
+      if (Number.isFinite(row.coilDb) && Number.isFinite(row.coilW)) {
+        const cx = mapX(row.coilDb), cy = mapY(row.coilW);
+        g.appendChild(E("line", { x1: x, y1: y, x2: cx, y2: cy, class: "coil-line", stroke: color }));
+        g.appendChild(E("rect", { x: cx - 5, y: cy - 5, width: 10, height: 10, fill: color, class: "coil-marker", transform: `rotate(45 ${cx} ${cy})` }));
+      }
+    });
+    active.forEach((row, i) => {
+      const color = COLORS[i % COLORS.length];
+      const x = mapX(row.db), y = mapY(row.w);
+      g.appendChild(E("circle", { cx: x, cy: y, r: 7, fill: color, class: "state-dot", "data-id": row.id }));
+      g.appendChild(E("text", { x: x + 11, y: y - 9, class: "state-label" }, row.id));
+    });
+
+    svg.appendChild(g);
+    svg.appendChild(E("g", { id: "crossG", "clip-path": "url(#cclip)" }));
+  }
+
+  function drawRoom(g, pressure) {
+    const minT = clamp(num(els.roomTMin.value) ?? 22, PHYS.tMin, PHYS.tMax);
+    const maxT = clamp(num(els.roomTMax.value) ?? 28, PHYS.tMin, PHYS.tMax);
+    const minRh = clamp(num(els.roomRHMin.value) ?? 40, 0, 100);
+    const maxRh = clamp(num(els.roomRHMax.value) ?? 70, 0, 100);
+    const left = Math.min(minT, maxT), right = Math.max(minT, maxT);
+    const low = Math.min(minRh, maxRh), high = Math.max(minRh, maxRh);
+    const top = [], bottom = [];
+    const step = Math.max(0.15, (right - left) / 40);
+    for (let tt = left; tt <= right + 1e-9; tt += step) { top.push([mapX(tt), mapY(humidityRatioFromState(tt, high, pressure))]); bottom.unshift([mapX(tt), mapY(humidityRatioFromState(tt, low, pressure))]); }
+    const polygon = [...top, ...bottom];
+    if (polygon.length < 4) return;
+    g.appendChild(E("path", { d: "M " + polygon.map((p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" L ") + " Z", class: "room-fill" }));
+  }
+
+  /* ===== interactive readout ===== */
+  function clientToSvg(clientX, clientY) { const svg = els.chart; const pt = svg.createSVGPoint(); pt.x = clientX; pt.y = clientY; const ctm = svg.getScreenCTM(); if (!ctm) return null; return pt.matrixTransform(ctm.inverse()); }
+  const roRow = (k, v) => `<div class="k">${k}</div><div class="v">${v}</div>`;
+  function setReadoutIdle() { els.readout.classList.add("idle"); els.roTitle.textContent = t("cursor"); els.roGrid.innerHTML = roRow("Tdb", "– °C") + roRow("RH", "– %") + roRow("W", "–") + roRow("h", "–"); }
+
+  function showCursorReadout(loc) {
+    const cross = els.chart.querySelector("#crossG"); if (cross) cross.innerHTML = "";
+    if (!loc || !inView(loc.x, loc.y)) { setReadoutIdle(); return; }
+    const tdeg = invX(loc.x), w = invY(loc.y); const pressure = pressureFromAltitude(state.altitude);
+    const near = nearestPoint(loc);
+    if (near) { showPointReadout(near.row, near.i); highlightPoint(cross, near.row); return; }
+    if (cross) {
+      cross.appendChild(E("line", { x1: loc.x, y1: INNER.y, x2: loc.x, y2: INNER.y + INNER.h, class: "crosshair" }));
+      cross.appendChild(E("line", { x1: INNER.x, y1: loc.y, x2: INNER.x + INNER.w, y2: loc.y, class: "crosshair" }));
+      cross.appendChild(E("circle", { cx: loc.x, cy: loc.y, r: 3.5, class: "cross-dot" }));
+    }
+    const pwst = saturationPressure(tdeg);
+    const pw = partialVapourPressureFromMoisture(pressure, w);
+    const rh = clamp(relativeHumidityFromVapourPressure(pw, pwst), 0, 999);
+    const supersat = rh > 100.5;
+    const h = enthalpyFromState(tdeg, w);
+    const twb = (!supersat && rh > 0) ? wetBulbFromState(state.altitude, tdeg, Math.min(rh, 100)) : null;
+    const td = dewPointFromVapourPressure(pw, tdeg);
+    els.readout.classList.remove("idle"); els.roTitle.textContent = t("cursor");
+    els.roGrid.innerHTML = roRow("Tdb", nf(tdeg, 1) + " °C") + roRow("RH", supersat ? "&gt;100%" : nf(rh, 1) + " %")
+      + roRow("W", nf(w, 5) + " kg/kg") + roRow("h", nf(h, 2) + " kJ/kg")
+      + roRow("Twb", twb != null ? nf(twb, 1) + " °C" : "–") + roRow("Td", nf(td, 1) + " °C")
+      + (supersat ? `<div class="k" style="grid-column:1/3;color:var(--amber)">⚠ ${t("superSat")}</div>` : "");
+  }
+
+  function nearestPoint(loc, threshold = 22) {
+    let best = null, bestD = threshold;
+    state.computedRows.forEach((row, idx) => { if (!hasBaseInputs(row)) return; const dx = mapX(row.db) - loc.x, dy = mapY(row.w) - loc.y; const d = Math.hypot(dx, dy); if (d < bestD) { bestD = d; best = { row, rowIndex: idx, i: activeIndex(idx) }; } });
+    return best;
+  }
+  function highlightPoint(cross, row) { if (cross) cross.appendChild(E("circle", { cx: mapX(row.db), cy: mapY(row.w), r: 12, class: "hl-ring" })); }
+  function showPointReadout(row, i) {
+    const color = COLORS[i % COLORS.length];
+    els.readout.classList.remove("idle");
+    els.roTitle.innerHTML = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${color};margin-right:6px"></span>State ${esc(row.id)}`;
+    let html = roRow("Tdb", nf(row.db, 2) + " °C") + roRow("RH", nf(row.rh, 1) + " %") + roRow("Twb", nf(row.twb, 2) + " °C")
+      + roRow("W", nf(row.w, 5)) + roRow("h", nf(row.h, 2) + " kJ/kg") + roRow("v", nf(row.v, 4) + " m³/kg") + roRow("Td", nf(row.td, 2) + " °C");
+    if (Number.isFinite(row.dutyKw)) html += roRow("Duty", nf(row.dutyKw, 2) + " kW") + roRow("", nf(row.dutyBtu, 0) + " BTU/h");
+    els.roGrid.innerHTML = html;
+  }
+
+  /* ===== zoom / pan / drag ===== */
+  function zoomAt(loc, factor) {
+    const v = state.view;
+    const tc = loc ? invX(loc.x) : (v.tMin + v.tMax) / 2;
+    const wc = loc ? invY(loc.y) : (v.wMin + v.wMax) / 2;
+    let nt = clamp((v.tMax - v.tMin) * factor, 4, PHYS.tMax - PHYS.tMin);
+    let nw = clamp((v.wMax - v.wMin) * factor, 0.002, PHYS.wMax - PHYS.wMin);
+    let tMin = tc - (tc - v.tMin) * (nt / (v.tMax - v.tMin));
+    let wMin = wc - (wc - v.wMin) * (nw / (v.wMax - v.wMin));
+    setView(tMin, tMin + nt, wMin, wMin + nw);
+  }
+  function setView(tMin, tMax, wMin, wMax) {
+    if (tMin < PHYS.tMin) { tMax += PHYS.tMin - tMin; tMin = PHYS.tMin; }
+    if (tMax > PHYS.tMax) { tMin -= tMax - PHYS.tMax; tMax = PHYS.tMax; tMin = Math.max(PHYS.tMin, tMin); }
+    if (wMin < PHYS.wMin) { wMax += PHYS.wMin - wMin; wMin = PHYS.wMin; }
+    if (wMax > PHYS.wMax) { wMin -= wMax - PHYS.wMax; wMax = PHYS.wMax; wMin = Math.max(PHYS.wMin, wMin); }
+    state.view = { tMin, tMax, wMin, wMax }; drawChart();
+  }
+  const invXfrom = (vw, px) => vw.tMin + (px - INNER.x) / INNER.w * (vw.tMax - vw.tMin);
+  const invYfrom = (vw, py) => vw.wMin + (INNER.y + INNER.h - py) / INNER.h * (vw.wMax - vw.wMin);
+
+  let dragging = false, dragStart = null, viewStart = null, draggingPoint = null;
+  function setupChartInteraction() {
+    const wrap = els.chartWrap;
+    wrap.addEventListener("pointermove", (e) => {
+      const loc = clientToSvg(e.clientX, e.clientY);
+      if (draggingPoint != null && loc) { movePointTo(draggingPoint, loc); return; }
+      if (dragging && loc && dragStart) {
+        const dt = invXfrom(viewStart, dragStart.x) - invXfrom(viewStart, loc.x);
+        const dw = invYfrom(viewStart, dragStart.y) - invYfrom(viewStart, loc.y);
+        setView(viewStart.tMin + dt, viewStart.tMax + dt, viewStart.wMin + dw, viewStart.wMax + dw); return;
+      }
+      const near = loc && inView(loc.x, loc.y) ? nearestPoint(loc, 16) : null;
+      wrap.style.cursor = near ? "grab" : "crosshair"; showCursorReadout(loc);
+    });
+    wrap.addEventListener("pointerleave", () => { setReadoutIdle(); const c = els.chart.querySelector("#crossG"); if (c) c.innerHTML = ""; });
+    wrap.addEventListener("pointerdown", (e) => {
+      const loc = clientToSvg(e.clientX, e.clientY);
+      const near = loc && inView(loc.x, loc.y) ? nearestPoint(loc, 16) : null;
+      if (near) { draggingPoint = near.rowIndex; wrap.setPointerCapture(e.pointerId); wrap.style.cursor = "grabbing"; return; }
+      dragging = true; dragStart = loc; viewStart = { ...state.view }; wrap.setPointerCapture(e.pointerId); wrap.style.cursor = "grabbing";
+    });
+    wrap.addEventListener("pointerup", (e) => {
+      try { wrap.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (draggingPoint != null) { draggingPoint = null; wrap.style.cursor = "grab"; render(); return; }
+      dragging = false; wrap.style.cursor = "crosshair";
+    });
+    wrap.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(clientToSvg(e.clientX, e.clientY), e.deltaY > 0 ? 1.15 : 0.87); }, { passive: false });
+  }
+
+  let pendingDrag = null, dragRaf = null;
+  function movePointTo(rowIndex, loc) { pendingDrag = { rowIndex, x: loc.x, y: loc.y }; if (dragRaf) return; dragRaf = requestAnimationFrame(() => { dragRaf = null; const d = pendingDrag; if (d) doMovePoint(d.rowIndex, d.x, d.y); }); }
+  function doMovePoint(rowIndex, lx, ly) {
+    const row = state.rows[rowIndex]; if (!row) return;
+    const p = pressureFromAltitude(state.altitude);
+    const tdb = clamp(invX(lx), PHYS.tMin, PHYS.tMax);
+    let w = clamp(invY(ly), 1e-6, PHYS.wMax);
+    const wsat = humidityRatioFromVapourPressure(saturationPressure(tdb), p);
+    if (w > wsat) w = wsat;
+    const pw = partialVapourPressureFromMoisture(p, w);
+    const rh = clamp(relativeHumidityFromVapourPressure(pw, saturationPressure(tdb)), 0.1, 100);
+    row.db = Math.round(tdb * 100) / 100; row.rh = Math.round(rh * 100) / 100;
+    computeRows(); renderSummary(); drawChart(); renderTable(); renderCards();
+    const cr = state.computedRows[rowIndex];
+    if (cr && hasBaseInputs(cr)) { showPointReadout(cr, activeIndex(rowIndex)); highlightPoint(els.chart.querySelector("#crossG"), cr); }
+  }
+
+  /* ===== table / cards ===== */
+  const cellVal = (row, c) => { const val = row[c.key]; if (c.edit) { if (c.type === "number") return Number.isFinite(val) ? val : ""; return val || ""; } return fmt(val, c.dec); };
+  const dispVal = (row, c) => { if (c.edit) return cellVal(row, c); const val = row[c.key]; return nf(val, c.dec); };
+  function visibleCols() { return COLUMNS.filter((c) => c.group === "in" || c.group === "ess" || (state.showAdvanced && c.group === "adv")); }
+  function activeIndex(rowIdx) { let n = -1; for (let i = 0; i <= rowIdx; i++) if (hasBaseInputs(state.computedRows[i])) n++; return n; }
+  function catGroups(cols) { const groups = []; cols.forEach((c) => { const prev = groups[groups.length - 1]; if (prev && prev.cat === c.cat) prev.span += 1; else groups.push({ cat: c.cat, span: 1 }); }); return groups; }
+
+  function renderTable() {
+    const cols = visibleCols();
+    const groups = catGroups(cols);
+    const catRow = `<tr class="cat-row">${groups.map((g) => `<th colspan="${g.span}">${esc(catLabel(g.cat))}</th>`).join("")}<th class="delcol"></th></tr>`;
+    const lblRow = `<tr class="lbl-row">${cols.map((c) => `<th title="${c.title ? esc(c.title[state.lang]) : ""}">${esc(c.label)}${c.unit ? `<span class="u">${esc(c.unit)}</span>` : ""}</th>`).join("")}<th class="delcol"></th></tr>`;
+    const body = state.computedRows.map((row, ri) => {
+      const color = hasBaseInputs(row) ? COLORS[activeIndex(ri) % COLORS.length] : "#cbd5e1";
+      const cells = cols.map((c, ci) => {
+        const firstStyle = ci === 0 ? ` style="border-left:4px solid ${color}"` : "";
+        if (c.edit) {
+          const cls = c.type === "number" ? "numinput" : "";
+          return `<td class="ed"${firstStyle}><input class="${cls}" data-row="${ri}" data-key="${c.key}" type="${c.type === "number" ? "number" : "text"}" inputmode="${c.type === "number" ? "decimal" : "text"}" ${c.type === "number" ? 'step="any"' : ""} value="${esc(cellVal(row, c))}" /></td>`;
+        }
+        const txt = dispVal(row, c);
+        return `<td class="num ${txt === "–" ? "dash" : ""}"${firstStyle}>${txt}</td>`;
+      }).join("");
+      return `<tr>${cells}<td class="delcell"><button class="del-btn" data-del="${ri}" title="${esc(t("delTitle"))}">×</button></td></tr>`;
+    }).join("");
+    els.statesTable.innerHTML = `<thead>${catRow}${lblRow}</thead><tbody>${body}</tbody>`;
+  }
+
+  function renderCards() {
+    const inputs = COLUMNS.filter((c) => c.edit);
+    const outsEss = COLUMNS.filter((c) => c.group === "ess");
+    const outsAdv = COLUMNS.filter((c) => c.group === "adv");
+    els.stateCards.innerHTML = state.computedRows.map((row, ri) => {
+      const color = hasBaseInputs(row) ? COLORS[activeIndex(ri) % COLORS.length] : "#cbd5e1";
+      const inHtml = inputs.map((c) => `<div class="mini-field"><label title="${c.title ? esc(c.title[state.lang]) : ""}">${esc(c.label)}${c.unit ? " (" + esc(c.unit) + ")" : ""}</label><input class="${c.type === "number" ? "numinput" : ""}" data-row="${ri}" data-key="${c.key}" type="${c.type === "number" ? "number" : "text"}" inputmode="${c.type === "number" ? "decimal" : "text"}" ${c.type === "number" ? 'step="any"' : ""} value="${esc(cellVal(row, c))}" /></div>`).join("");
+      const outCols = state.showAdvanced ? outsEss.concat(outsAdv) : outsEss;
+      const outHtml = outCols.map((c) => `<div class="cell"><div class="k">${esc(c.label)} <span class="u">${esc(c.unit)}</span></div><div class="v">${dispVal(row, c)}</div></div>`).join("");
+      return `<div class="state-card" style="border-left-color:${color}"><div class="sc-head"><strong>State ${esc(row.id || "—")}</strong><span class="spacer" style="flex:1"></span><button class="del-btn" data-del="${ri}" title="${esc(t("delTitle"))}">×</button></div><div class="sc-inputs">${inHtml}</div><div class="sc-out">${outHtml}</div></div>`;
+    }).join("");
+  }
+
+  function renderSummary() { els.pressureOut.textContent = nf(pressureFromAltitude(state.altitude), 3); els.plotCount.textContent = String(state.computedRows.filter(hasBaseInputs).length); }
+  function applyI18n() { document.documentElement.lang = state.lang; document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); }); els.langToggle.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.lang === state.lang)); }
+
+  function render() { computeRows(); renderTable(); renderCards(); renderSummary(); drawChart(); setReadoutIdle(); }
+
+  function onCellInput(e) {
+    const tgt = e.target; if (!(tgt instanceof HTMLInputElement)) return;
+    const ri = Number(tgt.dataset.row); const key = tgt.dataset.key; if (Number.isNaN(ri) || !key) return;
+    const row = state.rows[ri]; if (!row) return;
+    if (key === "id" || key === "joinTo" || key === "mixRef") row[key] = String(tgt.value || "").trim(); else row[key] = num(tgt.value);
+    computeRows(); renderSummary(); drawChart();
+  }
+  function onDelClick(e) { const btn = e.target.closest("[data-del]"); if (!btn) return; const ri = Number(btn.dataset.del); if (!Number.isNaN(ri)) { state.rows.splice(ri, 1); render(); } }
+
+  els.statesTable.addEventListener("input", onCellInput);
+  els.statesTable.addEventListener("change", render);
+  els.statesTable.addEventListener("click", onDelClick);
+  els.stateCards.addEventListener("input", onCellInput);
+  els.stateCards.addEventListener("change", render);
+  els.stateCards.addEventListener("click", onDelClick);
+  els.addState.addEventListener("click", () => { const used = new Set(state.rows.map((r) => normKey(r.id))); let n = 1; while (used.has(String(n))) n++; state.rows.push({ id: String(n), joinTo: "", db: 25, rh: 50, flow: null, mixRef: "", bypass: null }); render(); });
+  els.showAdvanced.addEventListener("change", () => { state.showAdvanced = els.showAdvanced.checked; renderTable(); renderCards(); });
+  els.altitudeInput.addEventListener("input", () => { state.altitude = num(els.altitudeInput.value) ?? 0; render(); });
+  [els.roomTMin, els.roomTMax, els.roomRHMin, els.roomRHMax, els.showRh, els.showEnthalpy, els.showWetBulb, els.showRoom].forEach((el) => { el.addEventListener("input", drawChart); el.addEventListener("change", drawChart); });
+  els.zoomIn.addEventListener("click", () => zoomAt(null, 0.8));
+  els.zoomOut.addEventListener("click", () => zoomAt(null, 1.25));
+  els.resetView.addEventListener("click", () => setView(PHYS.tMin, PHYS.tMax, PHYS.wMin, PHYS.wMax));
+  els.langToggle.addEventListener("click", (e) => { const b = e.target.closest("button[data-lang]"); if (!b) return; state.lang = b.dataset.lang; applyI18n(); render(); });
+  els.tabChart.addEventListener("click", () => { document.body.classList.remove("show-data"); els.tabChart.classList.add("active"); els.tabData.classList.remove("active"); drawChart(); });
+  els.tabData.addEventListener("click", () => { document.body.classList.add("show-data"); els.tabData.classList.add("active"); els.tabChart.classList.remove("active"); });
+
+  function csvEscape(v) { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+  els.exportCsv.addEventListener("click", () => {
+    const cols = visibleCols();
+    const lines = [cols.map((c) => csvEscape(c.unit ? `${c.label} (${c.unit})` : c.label)).join(","), ...state.computedRows.map((row) => cols.map((c) => csvEscape(cellVal(row, c))).join(","))];
+    const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "psychrometric-states.csv";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 0);
+  });
+  els.exportPdf.addEventListener("click", () => window.print());
+
+  // ----- theme (dark / light) with persistence -----
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function applyTheme(theme) {
+    state.theme = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", state.theme);
+    els.themeToggle.title = state.theme === "dark" ? "Dark — คลิกเป็น Light" : "Light — คลิกเป็น Dark";
+  }
+  els.themeToggle.addEventListener("click", () => { applyTheme(state.theme === "dark" ? "light" : "dark"); store("psy.theme", state.theme); });
+
+  // ----- comfort zone collapse with persistence -----
+  function applyRoom(collapsed) {
+    state.roomCollapsed = !!collapsed;
+    els.roomGrid.style.display = state.roomCollapsed ? "none" : "";
+    els.roomToggle.classList.toggle("collapsed", state.roomCollapsed);
+    if (!state.roomCollapsed) drawChart();
+  }
+  els.roomToggle.addEventListener("click", () => { applyRoom(!state.roomCollapsed); store("psy.room", state.roomCollapsed ? "1" : "0"); });
+
+  // ----- restore saved preferences -----
+  applyTheme(load("psy.theme") || "light");
+  applyRoom(load("psy.room") === null ? true : load("psy.room") === "1");
+
+  new ResizeObserver(() => drawChart()).observe(els.chartWrap);
+  applyI18n(); setupChartInteraction(); render();
+  </script>
+</body>
+</html>
