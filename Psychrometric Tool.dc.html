@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- React runtime for standalone hosting (added for GitHub Pages deploy) -->
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0d1117"/><g transform="translate(30,30)"><path d="M0 40 L0 0" stroke="#283040" stroke-width="2" fill="none"/><path d="M0 40 L40 40" stroke="#283040" stroke-width="2" fill="none"/><path d="M0 36 C18 36 22 6 40 4" stroke="#cdd9e5" stroke-width="2.4" fill="none"/><path d="M0 30 C14 30 20 12 40 10" stroke="#3d6ee0" stroke-width="1.6" fill="none"/><circle cx="14" cy="22" r="3.4" fill="#4c93ff"/><circle cx="30" cy="12" r="3.4" fill="#e3b341"/><path d="M14 22 L30 12" stroke="#e3b341" stroke-width="1.6"/></g></svg></template>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  :root, [data-theme="dark"]{
+    --bg:#0d1117; --panel:#161b22; --panel-2:#1c2330; --panel-3:#222b38;
+    --border:#283040; --border-2:#323c4d;
+    --text:#e6edf3; --text-dim:#9aa7b5; --text-mute:#697483;
+    --accent:#4c93ff; --accent-soft:rgba(76,147,255,.14);
+    --good:#3fb950; --warn:#e3b341; --danger:#f85149;
+    --chart-bg:#0f1620; --grid:#202938; --grid-soft:#18202c;
+    --sat:#cdd9e5; --rh:#3d6ee0; --enth:#d98c2b; --wb:#2c9d8f; --comfort:rgba(63,185,80,.13); --comfort-line:#3fb950;
+    --axis:#7d8a99; --tooltip-bg:#0b1018;
+  }
+  [data-theme="light"]{
+    --bg:#eef1f5; --panel:#ffffff; --panel-2:#f5f7fa; --panel-3:#eef1f5;
+    --border:#dde3ea; --border-2:#cfd7e0;
+    --text:#16202c; --text-dim:#55626f; --text-mute:#8a96a3;
+    --accent:#1f6feb; --accent-soft:rgba(31,111,235,.10);
+    --good:#1a7f37; --warn:#9a6700; --danger:#cf222e;
+    --chart-bg:#fbfcfe; --grid:#e3e8ef; --grid-soft:#eef2f6;
+    --sat:#3b4a5a; --rh:#2f5fd0; --enth:#bd6b15; --wb:#197f72; --comfort:rgba(26,127,55,.10); --comfort-line:#1a7f37;
+    --axis:#6b7785; --tooltip-bg:#ffffff;
+  }
+  body{font-family:'IBM Plex Sans','IBM Plex Sans Thai',system-ui,sans-serif;background:var(--bg);}
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  input[type=number]{-moz-appearance:textfield;}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+  @keyframes pcfade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans','IBM Plex Sans Thai',system-ui,sans-serif;padding:14px;">
+
+  <!-- ============ TOP BAR ============ -->
+  <header style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:4px 6px 16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-right:auto;">
+      <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(150deg,var(--accent),#2c9d8f);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 4px 14px var(--accent-soft);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M3 17c5 0 6-11 18-11"/><circle cx="13" cy="9" r="1.6" fill="#fff" stroke="none"/></svg>
+      </div>
+      <div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.1;">{{ t.appTitle }}</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px;">{{ t.appSub }}</div>
+      </div>
+    </div>
+
+    <!-- altitude / pressure -->
+    <div style="display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px 10px;">
+      <span style="font-size:11px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;">{{ t.altitude }}</span>
+      <input type="number" value="{{ altitude }}" onChange="{{ onAltitude }}" style="width:62px;background:var(--panel-2);border:1px solid var(--border-2);border-radius:7px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:5px 7px;text-align:right;" />
+      <span style="font-size:12px;color:var(--text-mute);">m</span>
+      <div style="width:1px;height:20px;background:var(--border);"></div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);font-weight:500;">{{ pressureStr }}</span>
+      <span style="font-size:12px;color:var(--text-mute);">kPa</span>
+    </div>
+
+    <!-- lang toggle -->
+    <div style="display:flex;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px;">
+      <button onClick="{{ onLangTH }}" style="{{ langThStyle }}">ไทย</button>
+      <button onClick="{{ onLangEN }}" style="{{ langEnStyle }}">EN</button>
+    </div>
+
+    <!-- theme toggle -->
+    <button onClick="{{ onTheme }}" title="Theme" style="width:40px;height:40px;border-radius:10px;background:var(--panel);border:1px solid var(--border);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+      <span style="font-size:17px;">{{ themeIcon }}</span>
+    </button>
+  </header>
+
+  <!-- ============ MAIN SPLIT ============ -->
+  <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:stretch;">
+
+    <!-- ====== CHART PANEL ====== -->
+    <section style="flex:3 1 540px;min-width:0;background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+      <!-- chart header -->
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;">
+          {{ t.chartTitle }}
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:20px;">{{ pointCount }} {{ t.pts }}</span>
+        </div>
+        <!-- layer chips -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;">
+          <sc-for list="{{ layerChips }}" as="L" hint-placeholder-count="4">
+            <button onClick="{{ L.onClick }}" style="{{ L.style }}">
+              <span style="width:9px;height:9px;border-radius:3px;background:{{ L.color }};display:inline-block;"></span>
+              {{ L.label }}
+            </button>
+          </sc-for>
+        </div>
+        <!-- zoom -->
+        <div style="display:flex;gap:4px;">
+          <button onClick="{{ onZoomOut }}" style="{{ zoomBtnStyle }}">−</button>
+          <button onClick="{{ onZoomIn }}" style="{{ zoomBtnStyle }}">+</button>
+          <button onClick="{{ onResetView }}" style="{{ resetBtnStyle }}">{{ t.reset }}</button>
+        </div>
+      </div>
+
+      <!-- chart canvas + overlay -->
+      <div ref="{{ chartWrap }}" style="position:relative;width:100%;height:clamp(380px,56vh,680px);background:var(--chart-bg);touch-action:none;cursor:crosshair;">
+        <canvas ref="{{ canvas }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+        <!-- draggable markers -->
+        <div style="position:absolute;inset:0;pointer-events:none;">
+          <sc-for list="{{ markers }}" as="m" hint-placeholder-count="2">
+            <div data-marker="1" data-id="{{ m.id }}" style="{{ m.dotStyle }}" title="{{ m.name }}"></div>
+            <div style="{{ m.labelStyle }}">{{ m.name }}</div>
+          </sc-for>
+        </div>
+        <!-- hover tooltip -->
+        <div ref="{{ tip }}" style="position:absolute;display:none;pointer-events:none;background:var(--tooltip-bg);border:1px solid var(--border-2);border-radius:9px;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.55;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:20;white-space:nowrap;"></div>
+        <!-- mobile hint -->
+        <div style="position:absolute;left:12px;bottom:10px;font-size:11px;color:var(--text-mute);background:var(--tooltip-bg);opacity:.82;padding:4px 9px;border-radius:7px;pointer-events:none;">{{ t.dragHint }}</div>
+      </div>
+    </section>
+
+    <!-- ====== SIDE PANEL ====== -->
+    <aside style="flex:1 1 330px;min-width:0;display:flex;flex-direction:column;gap:14px;">
+
+      <!-- READOUT CARD -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px 15px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="width:11px;height:11px;border-radius:4px;background:{{ active.color }};flex:none;"></span>
+          <span style="font-size:13px;font-weight:600;">{{ active.name }}</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--text-dim);">{{ t.selected }}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+          <sc-for list="{{ readout }}" as="r" hint-placeholder-count="6">
+            <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:11px;padding:9px 11px;">
+              <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;letter-spacing:.3px;text-transform:uppercase;">{{ r.label }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:500;margin-top:3px;color:{{ r.color }};">{{ r.value }}<span style="font-size:11px;color:var(--text-mute);font-weight:400;margin-left:3px;">{{ r.unit }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- STATE POINTS CARD -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px 15px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="font-size:13px;font-weight:600;">{{ t.statePoints }}</span>
+          <button onClick="{{ onAddPoint }}" style="margin-left:auto;display:flex;align-items:center;gap:5px;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">＋ {{ t.addPoint }}</button>
+        </div>
+
+        <!-- input grid: editable Tdb/RH/Flow prominent, computed values small (div-grid avoids table parsing issues) -->
+        <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;">
+          <div style="min-width:520px;">
+            <!-- header -->
+            <div style="display:grid;grid-template-columns:minmax(118px,1.4fr) 62px 56px 62px 54px 64px 64px 26px;background:var(--panel-2);border-bottom:1px solid var(--border);">
+              <div style="font-size:10.5px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;">{{ t.point }}</div>
+              <div style="text-align:right;font-size:11px;font-weight:700;color:var(--accent);padding:8px 6px;">{{ t.tdb }}<div style="font-size:9px;font-weight:500;color:var(--text-mute);">°C ✎</div></div>
+              <div style="text-align:right;font-size:11px;font-weight:700;color:var(--accent);padding:8px 6px;">{{ t.rh }}<div style="font-size:9px;font-weight:500;color:var(--text-mute);">% ✎</div></div>
+              <div style="text-align:right;font-size:11px;font-weight:700;color:var(--accent);padding:8px 6px;">{{ t.flow }}<div style="font-size:9px;font-weight:500;color:var(--text-mute);">m³/s ✎</div></div>
+              <div style="text-align:right;font-size:10px;font-weight:600;color:var(--text-mute);padding:8px 6px;">CFM<div style="font-size:9px;font-weight:400;">ft³/min</div></div>
+              <div style="text-align:right;font-size:11px;font-weight:700;color:var(--enth);padding:8px 6px;">{{ t.cap }}<div style="font-size:9px;font-weight:500;color:var(--text-mute);">kW</div></div>
+              <div style="text-align:right;font-size:10px;font-weight:600;color:var(--text-mute);padding:8px 6px;">{{ t.cap }}<div style="font-size:9px;font-weight:400;">BTU/h</div></div>
+              <div style="padding:8px 2px;"></div>
+            </div>
+            <!-- rows -->
+            <div ref="{{ tbodyRef }}">
+              <sc-for list="{{ cards }}" as="c" hint-placeholder-count="2">
+                <div onClick="{{ c.onFocus }}" data-id="{{ c.id }}" style="{{ c.rowStyle }}">
+                  <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;min-width:0;">
+                    <span data-grip="1" data-id="{{ c.id }}" title="{{ c.dragTitle }}" style="{{ c.gripStyle }}">{{ c.gripIcon }}</span>
+                    <button onClick="{{ c.onColor }}" data-id="{{ c.id }}" style="width:13px;height:13px;border-radius:4px;background:{{ c.color }};border:none;cursor:pointer;flex:none;" title="color"></button>
+                    <input value="{{ c.name }}" data-id="{{ c.id }}" onChange="{{ onName }}" onFocus="{{ c.onFocus }}" style="min-width:0;flex:1;background:transparent;border:none;color:var(--text);font-family:inherit;font-size:12.5px;font-weight:600;padding:2px 0;" />
+                    <button onClick="{{ c.onJoin }}" data-id="{{ c.id }}" title="Join process line" style="{{ c.joinDot }}">↔</button>
+                  </div>
+                  <div style="padding:4px 4px;display:flex;align-items:center;">
+                    <input type="number" step="0.1" value="{{ c.tdb }}" data-id="{{ c.id }}" data-field="Tdb" onChange="{{ onField }}" onFocus="{{ c.onFocus }}" style="{{ c.editCell }}" />
+                  </div>
+                  <div style="padding:4px 4px;display:flex;align-items:center;">
+                    <input type="number" step="1" value="{{ c.rh }}" data-id="{{ c.id }}" data-field="RH" onChange="{{ onField }}" onFocus="{{ c.onFocus }}" style="{{ c.editCell }}" />
+                  </div>
+                  <div style="padding:4px 4px;display:flex;align-items:center;">
+                    <input type="number" step="0.1" min="0" value="{{ c.flow }}" data-id="{{ c.id }}" data-field="flow" onChange="{{ onField }}" onFocus="{{ c.onFocus }}" style="{{ c.editCell }}" />
+                  </div>
+                  <div style="text-align:right;padding:6px 6px;align-self:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);">{{ c.cfmStr }}</div>
+                  <div style="text-align:right;padding:6px 6px;align-self:center;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:{{ c.capColor }};">{{ c.capKwStr }}</div>
+                  <div style="text-align:right;padding:6px 6px;align-self:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);">{{ c.capBtuStr }}</div>
+                  <div style="display:flex;align-items:center;justify-content:center;padding:4px 0;">
+                    <button onClick="{{ c.onRemove }}" data-id="{{ c.id }}" style="background:transparent;border:none;color:var(--text-mute);cursor:pointer;font-size:13px;padding:2px;">✕</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <!-- close-loop: selectable from -> to -->
+        <div style="margin-top:12px;">
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+            <button onClick="{{ onCloseLoop }}" style="{{ loopBtnStyle }}">⟳ {{ t.closeLoop }}</button>
+            <span style="font-size:11px;color:var(--text-mute);">{{ loopHint }}</span>
+          </div>
+          <sc-if value="{{ closeLoop }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:8px;margin-top:9px;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;padding:10px 11px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:84px;">
+                <div style="font-size:10px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.loopFrom }}</div>
+                <select value="{{ loopFrom }}" onChange="{{ onLoopFrom }}" style="{{ selectStyle }}">
+                  <sc-for list="{{ pointOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.name }}</option></sc-for>
+                </select>
+              </div>
+              <span style="color:var(--accent);font-size:16px;align-self:flex-end;padding-bottom:7px;">→</span>
+              <div style="flex:1;min-width:84px;">
+                <div style="font-size:10px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.loopTo }}</div>
+                <select value="{{ loopTo }}" onChange="{{ onLoopTo }}" style="{{ selectStyle }}">
+                  <sc-for list="{{ pointOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.name }}</option></sc-for>
+                </select>
+              </div>
+              <div style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--enth);font-weight:600;padding-top:2px;">{{ loopCapStr }}</div>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- export row -->
+        <div style="display:flex;gap:7px;margin-top:11px;">
+          <button onClick="{{ onCSV }}" style="{{ ghostBtnStyle }}">↧ CSV</button>
+          <button onClick="{{ onPrint }}" style="{{ ghostBtnStyle }}">⎙ {{ t.print }}</button>
+        </div>
+      </div>
+
+      <!-- PROCESS LOADS (item 1: Sensible / Latent / SHR / RT) -->
+      <sc-if value="{{ hasSegLoads }}" hint-placeholder-val="{{ true }}">
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px 15px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;">{{ t.procLoads }}</div>
+          <div style="overflow-x:auto;border:1px solid var(--border);border-radius:11px;">
+            <div style="min-width:470px;">
+              <div style="display:grid;grid-template-columns:minmax(120px,1.5fr) 66px 66px 66px 50px 54px;background:var(--panel-2);border-bottom:1px solid var(--border);">
+                <div style="font-size:10px;font-weight:600;color:var(--text-dim);padding:7px 9px;text-transform:uppercase;letter-spacing:.3px;">{{ t.point }}</div>
+                <div style="text-align:right;font-size:10px;font-weight:700;color:var(--enth);padding:7px 6px;">Total<div style="font-size:9px;color:var(--text-mute);font-weight:400;">kW</div></div>
+                <div style="text-align:right;font-size:10px;font-weight:700;color:var(--accent);padding:7px 6px;">Sens<div style="font-size:9px;color:var(--text-mute);font-weight:400;">kW</div></div>
+                <div style="text-align:right;font-size:10px;font-weight:700;color:var(--wb);padding:7px 6px;">Lat<div style="font-size:9px;color:var(--text-mute);font-weight:400;">kW</div></div>
+                <div style="text-align:right;font-size:10px;font-weight:700;color:var(--text-dim);padding:7px 6px;">SHR</div>
+                <div style="text-align:right;font-size:10px;font-weight:700;color:var(--text-dim);padding:7px 6px;">RT</div>
+              </div>
+              <sc-for list="{{ segLoads }}" as="g" hint-placeholder-count="1">
+                <div style="display:grid;grid-template-columns:minmax(120px,1.5fr) 66px 66px 66px 50px 54px;border-bottom:1px solid var(--border);">
+                  <div style="font-size:11.5px;color:var(--text);padding:7px 9px;display:flex;align-items:center;gap:6px;"><span style="width:9px;height:9px;border-radius:3px;background:{{ g.color }};flex:none;"></span>{{ g.name }}</div>
+                  <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;color:{{ g.totalColor }};font-weight:600;">{{ g.totalStr }}</div>
+                  <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;color:var(--text);">{{ g.sensStr }}</div>
+                  <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;color:var(--text-dim);">{{ g.latStr }}</div>
+                  <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;color:var(--text-dim);">{{ g.shrStr }}</div>
+                  <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;color:var(--text-dim);">{{ g.rtStr }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:var(--text-mute);line-height:1.6;margin-top:8px;">{{ t.procLoadsNote }}</div>
+        </div>
+      </sc-if>
+
+      <!-- MIX / COIL CARD -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px 15px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px;">
+          <span style="font-size:13px;font-weight:600;">{{ t.processTool }}</span>
+          <div style="margin-left:auto;display:flex;background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px;">
+            <button onClick="{{ onModeMix }}" style="{{ mixTabStyle }}">{{ t.mix }}</button>
+            <button onClick="{{ onModeCoil }}" style="{{ coilTabStyle }}">{{ t.coil }}</button>
+          </div>
+        </div>
+
+        <!-- MIX mode -->
+        <sc-if value="{{ isMix }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:9px;">
+              <div style="flex:1;">
+                <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.streamA }}</div>
+                <select value="{{ mixA }}" onChange="{{ onMixA }}" style="{{ selectStyle }}">
+                  <sc-for list="{{ pointOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.name }}</option></sc-for>
+                </select>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.streamB }}</div>
+                <select value="{{ mixB }}" onChange="{{ onMixB }}" style="{{ selectStyle }}">
+                  <sc-for list="{{ pointOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.name }}</option></sc-for>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span style="color:var(--text-dim);">{{ t.massFrac }} A</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent);">{{ mixFracPct }}%</span></div>
+              <input type="range" min="0" max="100" value="{{ mixFrac }}" onInput="{{ onMixFrac }}" style="width:100%;accent-color:var(--accent);" />
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-dim);background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;">{{ mixResult }}</div>
+            <button onClick="{{ onAddResult }}" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">＋ {{ t.addAsPoint }}</button>
+          </div>
+        </sc-if>
+
+        <!-- COIL mode -->
+        <sc-if value="{{ isCoil }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.entering }}</div>
+              <select value="{{ coilIn }}" onChange="{{ onCoilIn }}" style="{{ selectStyle }}">
+                <sc-for list="{{ pointOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.name }}</option></sc-for>
+              </select>
+            </div>
+            <div style="display:flex;gap:9px;">
+              <div style="flex:1;">
+                <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.adp }} °C</div>
+                <input type="number" step="0.5" value="{{ coilAdp }}" onChange="{{ onCoilAdp }}" style="{{ inputStyle }}" />
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.bf }}</div>
+                <input type="number" step="0.05" min="0" max="1" value="{{ coilBf }}" onChange="{{ onCoilBf }}" style="{{ inputStyle }}" />
+              </div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-dim);background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;">{{ coilResult }}</div>
+            <button onClick="{{ onAddResult }}" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">＋ {{ t.addAsPoint }}</button>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- ROOM LOAD → AIRFLOW (item 2 concept) -->
+      <div style="background:var(--panel);border:1px dashed var(--warn);border-radius:16px;padding:14px 15px;">
+        <div style="font-size:13px;font-weight:600;">{{ t.roomLoad }}</div>
+        <div style="font-size:10.5px;color:var(--text-mute);margin:2px 0 11px;">{{ t.roomLoadSub }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px;">
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.rSens }} (kW)</div>
+            <input type="number" step="0.1" value="{{ roomQs }}" onChange="{{ onRoomQs }}" style="{{ inputStyle }}" />
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.rLat }} (kW)</div>
+            <input type="number" step="0.1" value="{{ roomQl }}" onChange="{{ onRoomQl }}" style="{{ inputStyle }}" />
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.roomT }} (°C / %)</div>
+            <div style="display:flex;gap:6px;">
+              <input type="number" step="0.1" value="{{ roomTdb }}" onChange="{{ onRoomTdb }}" style="{{ inputStyle }}" />
+              <input type="number" step="1" value="{{ roomRH }}" onChange="{{ onRoomRH }}" style="{{ inputStyle }}" />
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.supplyT }} (°C)</div>
+            <input type="number" step="0.1" value="{{ supplyTdb }}" onChange="{{ onSupplyTdb }}" style="{{ inputStyle }}" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:8px;">
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+            <div style="font-size:10px;color:var(--text-dim);font-weight:600;">RSHF</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;">{{ roomRshf }}</div>
+          </div>
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+            <div style="font-size:10px;color:var(--text-dim);font-weight:600;">{{ t.reqAir }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;color:var(--accent);">{{ roomCmh }}</div>
+            <div style="font-size:9.5px;color:var(--text-mute);">CMH · {{ roomCfm }} CFM</div>
+          </div>
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+            <div style="font-size:10px;color:var(--text-dim);font-weight:600;">{{ t.supplyT }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;">{{ roomSupply }}</div>
+          </div>
+        </div>
+        <div style="font-size:10.5px;color:var(--text-mute);line-height:1.6;margin-top:9px;">{{ t.roomNote }}</div>
+      </div>
+
+      <div style="font-size:11px;color:var(--text-mute);line-height:1.6;padding:0 4px 6px;">{{ t.footnote }}</div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:820}}">
+class Component extends DCLogic {
+  _refs = {};
+  state = {
+    ready: false,
+    lang: 'th',
+    theme: 'dark',
+    altitude: 0,
+    activeId: 1,
+    points: [
+      { id: 1, name: 'Outdoor', color: '#4c93ff', Tdb: 35, RH: 55, join: true, flow: 1.0 },
+      { id: 2, name: 'Supply', color: '#e3b341', Tdb: 14, RH: 92, join: true, flow: 1.0 },
+    ],
+    layers: { rh: true, enth: true, wb: false, comfort: true, sat: true },
+    comfort: { tmin: 23, tmax: 26, rhmin: 40, rhmax: 60 },
+    view: { tmin: 0, tmax: 50, wmax: 30 }, // wmax in g/kg
+    nextId: 3,
+    procMode: 'mix',
+    dragId: null,
+    closeLoop: false,
+    loopFrom: null,
+    loopTo: null,
+    mixA: 1, mixB: 2, mixFrac: 50,
+    coilIn: 1, coilAdp: 11, coilBf: 0.12,
+    // room-load → required airflow (concept, item 2)
+    roomQs: 8, roomQl: 2, roomTdb: 24, roomRH: 50, supplyTdb: 14,
+  };
+
+  // ---------- psychrometric math (ASHRAE) ----------
+  Pws(T) {
+    const Tk = T + 273.15;
+    if (T < 0) {
+      const C1=-5.6745359e3,C2=6.3925247,C3=-9.677843e-3,C4=6.2215701e-7,C5=2.0747825e-9,C6=-9.484024e-13,C7=4.1635019;
+      return Math.exp(C1/Tk+C2+C3*Tk+C4*Tk*Tk+C5*Tk**3+C6*Tk**4+C7*Math.log(Tk));
+    }
+    const C8=-5.8002206e3,C9=1.3914993,C10=-4.8640239e-2,C11=4.1764768e-5,C12=-1.4452093e-8,C13=6.5459673;
+    return Math.exp(C8/Tk+C9+C10*Tk+C11*Tk*Tk+C12*Tk**3+C13*Math.log(Tk));
+  }
+  W_from_RH(T, RH, P) { const pw=(RH/100)*this.Pws(T)/1000; return 0.621945*pw/(P-pw); }
+  pw_from_W(W, P) { return P*W/(0.621945+W); }
+  RH_from_W(T, W, P) { const pw=this.pw_from_W(W,P), pws=this.Pws(T)/1000; return Math.min(100,Math.max(0,100*pw/pws)); }
+  enthalpy(T, W) { return 1.006*T+W*(2501+1.86*T); }
+  specificVolume(T, W, P) { return 0.287042*(T+273.15)*(1+1.607858*W)/P; }
+  dewPoint(W, P) {
+    const pw=this.pw_from_W(W,P)*1000; if(pw<=0) return -100;
+    let Td=20;
+    for(let i=0;i<50;i++){ const f=this.Pws(Td)-pw, d=(this.Pws(Td+0.01)-this.Pws(Td-0.01))/0.02, step=f/d; Td-=step; if(Math.abs(step)<1e-4) break; }
+    return Td;
+  }
+  wetBulb(T, W, P) {
+    let lo=-30,hi=T;
+    for(let i=0;i<60;i++){ const Twb=(lo+hi)/2, Ws=this.W_from_RH(Twb,100,P);
+      const Wc=((2501-2.326*Twb)*Ws-1.006*(T-Twb))/(2501+1.86*T-4.186*Twb);
+      if(Wc>W) hi=Twb; else lo=Twb; }
+    return (lo+hi)/2;
+  }
+  W_from_Twb(T, Twb, P) { const Ws=this.W_from_RH(Twb,100,P); return ((2501-2.326*Twb)*Ws-1.006*(T-Twb))/(2501+1.86*T-4.186*Twb); }
+  pressureAtAltitude(z) { return 101.325*Math.pow(1-2.25577e-5*z,5.2559); }
+  buildState(T, W, P) { return { Tdb:T, W:W, RH:this.RH_from_W(T,W,P), h:this.enthalpy(T,W), Twb:this.wetBulb(T,W,P), Tdp:this.dewPoint(W,P), v:this.specificVolume(T,W,P) }; }
+
+  componentDidMount() {
+    document.documentElement.setAttribute('data-theme', this.state.theme);
+    this.setState({ ready: true });
+    this._onResize = () => { this._setupCanvas(); this.draw(); };
+    window.addEventListener('resize', this._onResize);
+    // Delegated pointerdown — robust against the bundler lowercasing onPointerDown
+    // (React never binds the lowercased attr). Routes by data-grip / data-marker.
+    this._onPointerDownDelegate = (e) => {
+      const t = e.target;
+      if (!t || !t.closest) return;
+      const grip = t.closest('[data-grip]');
+      if (grip) { this._rowDragStart(e, +grip.getAttribute('data-id')); return; }
+      const marker = t.closest('[data-marker]');
+      if (marker) { this._markerDown(e, +marker.getAttribute('data-id')); return; }
+    };
+    document.addEventListener('pointerdown', this._onPointerDownDelegate, true);
+    // attach: re-resolve elements FRESH from the DOM every call. In the bundled
+    // standalone, ref callbacks may not fire and the splash→content unpack swaps
+    // nodes, so we never trust stale refs and re-observe whenever the node changes.
+    const attach = () => {
+      const cv = document.querySelector('canvas');
+      if (cv) this._refs.canvas = cv;
+      const wrap = cv ? cv.parentElement : null;
+      if (wrap) this._refs.chartWrap = wrap;
+      this._setupCanvas(); this.draw();
+      if (cv && !cv._psychroListened) {
+        cv._psychroListened = true;
+        cv.addEventListener('pointermove', (e) => this._hover(e));
+        cv.addEventListener('pointerleave', () => { if (this._refs.tip) this._refs.tip.style.display = 'none'; });
+      }
+      if (wrap && this._roTarget !== wrap) {
+        if (this._ro) this._ro.disconnect();
+        this._ro = new ResizeObserver(() => { this._setupCanvas(); this.draw(); });
+        this._ro.observe(wrap);
+        this._roTarget = wrap;
+      }
+    };
+    requestAnimationFrame(attach);
+    // The bundled splash→content unpack replaces the canvas node with a fresh
+    // 300×150 one AFTER mount, which nothing else re-sizes. Watch for ~8s and
+    // re-attach whenever the live canvas is swapped or its backing size is wrong.
+    this._sizeWatch = setInterval(() => {
+      const cv = document.querySelector('canvas');
+      if (!cv) return;
+      const wrap = cv.parentElement;
+      if (!wrap) return;
+      const dpr = window.devicePixelRatio || 1;
+      const want = Math.round(wrap.getBoundingClientRect().width * dpr);
+      const mismatched = want > 0 && Math.abs(cv.width - want) > 1;
+      if (mismatched || this._refs.canvas !== cv) {
+        this._refs.canvas = cv; this._refs.chartWrap = wrap; attach();
+      }
+    }, 200);
+    setTimeout(() => { if (this._sizeWatch) clearInterval(this._sizeWatch); }, 8000);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
+    if (this._onPointerDownDelegate) document.removeEventListener('pointerdown', this._onPointerDownDelegate, true);
+    if (this._sizeWatch) clearInterval(this._sizeWatch);
+    if (this._ro) this._ro.disconnect();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState && this.state.theme !== prevState.theme)
+      document.documentElement.setAttribute('data-theme', this.state.theme);
+    this.draw();
+  }
+
+  // ---------- geometry ----------
+  _setupCanvas() {
+    // Fallback for bundled standalone where ref callbacks may not fire
+    if (!this._refs.canvas) this._refs.canvas = document.querySelector('canvas');
+    if (!this._refs.chartWrap) {
+      const cv = this._refs.canvas;
+      if (cv) this._refs.chartWrap = cv.parentElement;
+    }
+    const cv = this._refs.canvas, wrap = this._refs.chartWrap;
+    if (!cv || !wrap) return;
+    const r = wrap.getBoundingClientRect();
+    // Guard: if layout hasn't resolved yet, don't stomp the canvas with width=0
+    if (r.width < 50 || r.height < 50) return;
+    const dpr = window.devicePixelRatio || 1;
+    this._w = r.width; this._h = r.height;
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this._padL = 46; this._padR = 56; this._padT = 16; this._padB = 38;
+    this._plot = {
+      x: this._padL, y: this._padT,
+      w: Math.max(10, this._w - this._padL - this._padR),
+      h: Math.max(10, this._h - this._padT - this._padB),
+    };
+  }
+  px(T) { const v = this.state.view, p = this._plot; return p.x + (T - v.tmin) / (v.tmax - v.tmin) * p.w; }
+  py(Wkg) { const v = this.state.view, p = this._plot; return p.y + (1 - (Wkg * 1000) / v.wmax) * p.h; }
+  invX(px) { const v = this.state.view, p = this._plot; return v.tmin + (px - p.x) / p.w * (v.tmax - v.tmin); }
+  invY(py) { const v = this.state.view, p = this._plot; return (1 - (py - p.y) / p.h) * v.wmax / 1000; }
+  col(name, fb) { const c = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); return c || fb; }
+  P() { return this.pressureAtAltitude(this.state.altitude); }
+
+  // ---------- drawing ----------
+  draw() {
+    const cv = this._refs.canvas; if (!cv || !this._plot) return;
+    const ctx = cv.getContext('2d'), p = this._plot, P = this.P(), L = this.state.layers, v = this.state.view;
+    ctx.clearRect(0, 0, this._w, this._h);
+    // bg
+    ctx.fillStyle = this.col('--chart-bg', '#0f1620');
+    ctx.fillRect(0, 0, this._w, this._h);
+    const clip = () => { ctx.save(); ctx.beginPath(); ctx.rect(p.x, p.y, p.w, p.h); ctx.clip(); };
+
+    // grid
+    ctx.strokeStyle = this.col('--grid', '#202938'); ctx.lineWidth = 1; ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = this.col('--axis', '#7d8a99'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const tStep = (v.tmax - v.tmin) > 30 ? 5 : (v.tmax - v.tmin) > 12 ? 2 : 1;
+    for (let T = Math.ceil(v.tmin / tStep) * tStep; T <= v.tmax + 0.01; T += tStep) {
+      const x = this.px(T);
+      ctx.strokeStyle = this.col('--grid-soft', '#18202c'); ctx.beginPath(); ctx.moveTo(x, p.y); ctx.lineTo(x, p.y + p.h); ctx.stroke();
+      ctx.fillText(T.toFixed(0), x, p.y + p.h + 6);
+    }
+    ctx.fillText('°C  (Tdb)', p.x + p.w / 2, p.y + p.h + 22);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const wStep = v.wmax > 24 ? 5 : v.wmax > 10 ? 2 : 1;
+    for (let Wg = 0; Wg <= v.wmax + 0.01; Wg += wStep) {
+      const y = this.py(Wg / 1000);
+      ctx.strokeStyle = this.col('--grid-soft', '#18202c'); ctx.beginPath(); ctx.moveTo(p.x, y); ctx.lineTo(p.x + p.w, y); ctx.stroke();
+      ctx.fillStyle = this.col('--axis', '#7d8a99'); ctx.fillText(Wg.toFixed(0), p.x + p.w + 7, y);
+    }
+    ctx.save(); ctx.translate(p.x + p.w + 44, p.y + p.h / 2); ctx.rotate(Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText('W  g/kg', 0, 0); ctx.restore();
+
+    const drawCurve = (fn, color, width, dash) => {
+      ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
+      ctx.beginPath(); let started = false;
+      for (let T = v.tmin; T <= v.tmax + 0.001; T += 0.4) {
+        const Wkg = fn(T); if (Wkg == null || isNaN(Wkg)) { started = false; continue; }
+        const x = this.px(T), y = this.py(Wkg);
+        if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+    };
+    const satW = (T) => this.W_from_RH(T, 100, P);
+
+    clip();
+    // comfort zone
+    if (L.comfort) {
+      const c = this.state.comfort;
+      ctx.fillStyle = this.col('--comfort', 'rgba(63,185,80,.13)');
+      ctx.strokeStyle = this.col('--comfort-line', '#3fb950'); ctx.lineWidth = 1.4; ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      let f = true;
+      for (let T = c.tmin; T <= c.tmax + .001; T += 0.5) { const x = this.px(T), y = this.py(this.W_from_RH(T, c.rhmin, P)); f ? (ctx.moveTo(x, y), f = false) : ctx.lineTo(x, y); }
+      for (let T = c.tmax; T >= c.tmin - .001; T -= 0.5) { const x = this.px(T), y = this.py(this.W_from_RH(T, c.rhmax, P)); ctx.lineTo(x, y); }
+      ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // RH curves
+    if (L.rh) {
+      for (let rh = 10; rh <= 90; rh += 10)
+        drawCurve((T) => { const w = this.W_from_RH(T, rh, P); return w; }, this.col('--rh', '#3d6ee0'), rh % 50 === 0 ? 1.3 : 0.8);
+    }
+    // enthalpy lines
+    if (L.enth) {
+      for (let h = -10; h <= 140; h += 10) {
+        drawCurve((T) => {
+          const W = (h - 1.006 * T) / (2501 + 1.86 * T);
+          if (W < 0) return null;
+          const ws = satW(T); if (W > ws + 1e-5) return null; return W;
+        }, this.col('--enth', '#d98c2b'), 0.7, [3, 3]);
+      }
+    }
+    // wet bulb lines
+    if (L.wb) {
+      for (let twb = 0; twb <= 34; twb += 4) {
+        drawCurve((T) => {
+          if (T < twb) return null;
+          const W = this.W_from_Twb(T, twb, P);
+          if (W < 0) return null; const ws = satW(T); if (W > ws + 1e-5) return null; return W;
+        }, this.col('--wb', '#2c9d8f'), 0.8, [1, 3]);
+      }
+    }
+    // saturation
+    if (L.sat) drawCurve(satW, this.col('--sat', '#cdd9e5'), 2);
+
+    // process lines between joined points (in order)
+    const states = this._states();
+    const joined = states.filter(s => s.join);
+    if (joined.length > 1) {
+      for (let i = 0; i < joined.length - 1; i++) {
+        const a = joined[i], b = joined[i + 1];
+        ctx.strokeStyle = b.color; ctx.lineWidth = 2.2;
+        ctx.beginPath(); ctx.moveTo(this.px(a.Tdb), this.py(a.W)); ctx.lineTo(this.px(b.Tdb), this.py(b.W)); ctx.stroke();
+        // arrow
+        const ang = Math.atan2(this.py(b.W) - this.py(a.W), this.px(b.Tdb) - this.px(a.Tdb));
+        const mx = (this.px(a.Tdb) + this.px(b.Tdb)) / 2, my = (this.py(a.W) + this.py(b.W)) / 2;
+        ctx.fillStyle = b.color; ctx.beginPath();
+        ctx.moveTo(mx + Math.cos(ang) * 7, my + Math.sin(ang) * 7);
+        ctx.lineTo(mx + Math.cos(ang + 2.5) * 7, my + Math.sin(ang + 2.5) * 7);
+        ctx.lineTo(mx + Math.cos(ang - 2.5) * 7, my + Math.sin(ang - 2.5) * 7);
+        ctx.closePath(); ctx.fill();
+      }
+      // loop-closing return segment (user-selected from -> to), dashed to distinguish
+    }
+    const le = this._loopEnds();
+    if (le) {
+      const a = le.from, b = le.to;
+      ctx.strokeStyle = a.color; ctx.lineWidth = 2; ctx.setLineDash([7, 5]);
+      ctx.beginPath(); ctx.moveTo(this.px(a.Tdb), this.py(a.W)); ctx.lineTo(this.px(b.Tdb), this.py(b.W)); ctx.stroke(); ctx.setLineDash([]);
+      const ang = Math.atan2(this.py(b.W) - this.py(a.W), this.px(b.Tdb) - this.px(a.Tdb));
+      const mx = (this.px(a.Tdb) + this.px(b.Tdb)) / 2, my = (this.py(a.W) + this.py(b.W)) / 2;
+      ctx.fillStyle = a.color; ctx.beginPath();
+      ctx.moveTo(mx + Math.cos(ang) * 7, my + Math.sin(ang) * 7);
+      ctx.lineTo(mx + Math.cos(ang + 2.5) * 7, my + Math.sin(ang + 2.5) * 7);
+      ctx.lineTo(mx + Math.cos(ang - 2.5) * 7, my + Math.sin(ang - 2.5) * 7);
+      ctx.closePath(); ctx.fill();
+    }
+    // room RSHF concept line (item 2)
+    const rl = this._roomCalc();
+    if (rl && isFinite(rl.supply.W) && isFinite(rl.room.W)) {
+      ctx.strokeStyle = this.col('--warn', '#e3b341'); ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(this.px(rl.room.Tdb), this.py(rl.room.W)); ctx.lineTo(this.px(rl.supply.Tdb), this.py(rl.supply.W)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = this.col('--warn', '#e3b341'); ctx.font = "600 10px 'IBM Plex Mono',monospace";
+      const mx = (this.px(rl.room.Tdb) + this.px(rl.supply.Tdb)) / 2, my = (this.py(rl.room.W) + this.py(rl.supply.W)) / 2;
+      ctx.fillText('RSHF ' + rl.RSHF.toFixed(2), mx + 4, my - 4);
+    }
+    ctx.restore(); // clip
+  }
+
+  // ---------- state computation ----------
+  _loopEnds() {
+    if (!this.state.closeLoop) return null;
+    const ss = this._states();
+    const joined = ss.filter(s => s.join);
+    const lfId = this.state.loopFrom != null ? this.state.loopFrom : (joined.length ? joined[joined.length - 1].id : null);
+    const ltId = this.state.loopTo != null ? this.state.loopTo : (joined.length ? joined[0].id : null);
+    const from = ss.find(s => s.id === lfId), to = ss.find(s => s.id === ltId);
+    if (!from || !to || from.id === to.id) return null;
+    return { from, to };
+  }
+  _states() {
+    const P = this.P();
+    return this.state.points.map(pt => {
+      const s = this.buildState(pt.Tdb, this.W_from_RH(pt.Tdb, pt.RH, P), P);
+      return { ...pt, ...s };
+    });
+  }
+
+  // ---------- hover ----------
+  _hover(e) {
+    if (!this._plot) return;
+    if (!this._refs.tip) this._refs.tip = document.querySelector('[style*="tooltip-bg"]') || document.querySelector('[style*="pointer-events:none"][style*="position:absolute"][style*="display:none"]');
+    const cv = this._refs.canvas, tip = this._refs.tip; if (!cv || !tip) return;
+    const r = cv.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top, p = this._plot;
+    if (mx < p.x || mx > p.x + p.w || my < p.y || my > p.y + p.h) { tip.style.display = 'none'; return; }
+    const T = this.invX(mx), W = this.invY(my), P = this.P();
+    if (W < 0) { tip.style.display = 'none'; return; }
+    const st = this.buildState(T, W, P);
+    const f = (n, d) => n.toFixed(d);
+    const TT = this._t();
+    tip.innerHTML = `<b style="color:var(--accent)">${f(T, 1)}°C</b> · ${f(st.RH, 0)}% RH<br>W ${f(W * 1000, 2)} g/kg<br>h ${f(st.h, 1)} kJ/kg<br>Twb ${f(st.Twb, 1)}°C · Tdp ${f(st.Tdp, 1)}°C`;
+    tip.style.display = 'block';
+    let lx = mx + 14, ly = my + 12;
+    if (lx + 150 > this._w) lx = mx - 160; if (ly + 80 > this._h) ly = my - 80;
+    tip.style.left = lx + 'px'; tip.style.top = ly + 'px';
+  }
+
+  // ---------- marker dragging ----------
+  _markerDown(e, id) {
+    e.preventDefault(); e.stopPropagation();
+    if (!this._refs.canvas) this._refs.canvas = document.querySelector('canvas');
+    if (!this._plot) this._setupCanvas();
+    this.setState({ activeId: id });
+    const move = (ev) => {
+      const r = this._refs.canvas.getBoundingClientRect();
+      let mx = ev.clientX - r.left, my = ev.clientY - r.top, p = this._plot;
+      mx = Math.max(p.x, Math.min(p.x + p.w, mx)); my = Math.max(p.y, Math.min(p.y + p.h, my));
+      let T = this.invX(mx), W = this.invY(my); const P = this.P();
+      const ws = this.W_from_RH(T, 100, P);
+      if (W > ws) W = ws; if (W < 0) W = 0;
+      const RH = this.RH_from_W(T, W, P);
+      this.setState(s => ({ points: s.points.map(pt => pt.id === id ? { ...pt, Tdb: +T.toFixed(1), RH: +RH.toFixed(1) } : pt) }));
+    };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  }
+
+  // ---------- editing ----------
+  _setField(id, field, val) {
+    let n = parseFloat(val); if (isNaN(n)) return;
+    if (field === 'RH') n = Math.max(0, Math.min(100, n));
+    this.setState(s => ({ activeId: id, points: s.points.map(pt => pt.id === id ? { ...pt, [field]: n } : pt) }));
+  }
+  _setName(id, val) { this.setState(s => ({ points: s.points.map(pt => pt.id === id ? { ...pt, name: val } : pt) })); }
+  _cycleColor(id) {
+    const pal = ['#4c93ff', '#e3b341', '#3fb950', '#f85149', '#a371f7', '#2c9d8f', '#ff7b72', '#d2a8ff'];
+    this.setState(s => ({ points: s.points.map(pt => { if (pt.id !== id) return pt; const i = pal.indexOf(pt.color); return { ...pt, color: pal[(i + 1) % pal.length] }; }) }));
+  }
+  _toggleJoin(id) { this.setState(s => ({ points: s.points.map(pt => pt.id === id ? { ...pt, join: !pt.join } : pt) })); }
+  _addPoint() {
+    const pal = ['#4c93ff', '#e3b341', '#3fb950', '#f85149', '#a371f7', '#2c9d8f'];
+    this.setState(s => {
+      const id = s.nextId;
+      return { nextId: id + 1, activeId: id, points: [...s.points, { id, name: 'Point ' + id, color: pal[s.points.length % pal.length], Tdb: 25, RH: 50, join: false, flow: 1.0 }] };
+    });
+  }
+  _removePoint(id) { this.setState(s => { const pts = s.points.filter(p => p.id !== id); return { points: pts, activeId: pts.length ? pts[0].id : null }; }); }
+
+  // ---------- reorder (press & hold drag) ----------
+  // A row is draggable only if it is NOT joined, and it can only swap with an
+  // adjacent row that is also NOT joined — so it can never cross a joined point.
+  _rowDragStart(e, id) {
+    const pt = this.state.points.find(p => p.id === id);
+    if (!pt || pt.join) return;            // joined rows are locked
+    e.preventDefault(); e.stopPropagation();
+    this.setState({ activeId: id, dragId: id });
+    try { e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); } catch (x) {}
+    const move = (ev) => {
+      // DOM fallback: in the bundled standalone the tbody ref callback may not fire
+      let tb = this._tbody;
+      if (!tb || !tb.isConnected) {
+        const anyRow = document.querySelector('div[data-id]');
+        tb = anyRow ? anyRow.parentElement : null;
+        this._tbody = tb;
+      }
+      if (!tb) return;
+      const rows = [...tb.children];
+      const pts = this.state.points;
+      const di = pts.findIndex(p => p.id === id);
+      if (di < 0) return;
+      const y = ev.clientY;
+      // move up?
+      if (di > 0 && !pts[di - 1].join && rows[di - 1]) {
+        const r = rows[di - 1].getBoundingClientRect();
+        if (y < r.top + r.height / 2) {
+          this.setState(s => { const a = [...s.points];[a[di - 1], a[di]] = [a[di], a[di - 1]]; return { points: a }; });
+          return;
+        }
+      }
+      // move down?
+      if (di < pts.length - 1 && !pts[di + 1].join && rows[di + 1]) {
+        const r = rows[di + 1].getBoundingClientRect();
+        if (y > r.top + r.height / 2) {
+          this.setState(s => { const a = [...s.points];[a[di + 1], a[di]] = [a[di], a[di + 1]]; return { points: a }; });
+          return;
+        }
+      }
+    };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); this.setState({ dragId: null }); };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  }
+
+  // ---------- process tool ----------
+  _mixState() {
+    const ss = this._states(); const a = ss.find(s => s.id === this.state.mixA), b = ss.find(s => s.id === this.state.mixB);
+    if (!a || !b) return null; const f = this.state.mixFrac / 100, P = this.P();
+    const W = f * a.W + (1 - f) * b.W, h = f * a.h + (1 - f) * b.h;
+    const T = (h - W * 2501) / (1.006 + 1.86 * W);
+    return this.buildState(T, W, P);
+  }
+  _coilState() {
+    const ss = this._states(); const e = ss.find(s => s.id === this.state.coilIn); if (!e) return null;
+    const P = this.P(), bf = Math.max(0, Math.min(1, this.state.coilBf));
+    const adp = this.buildState(this.state.coilAdp, this.W_from_RH(this.state.coilAdp, 100, P), P);
+    const W = adp.W + bf * (e.W - adp.W), h = adp.h + bf * (e.h - adp.h);
+    const T = (h - W * 2501) / (1.006 + 1.86 * W);
+    return this.buildState(T, W, P);
+  }
+  _addResult() {
+    const st = this.state.procMode === 'mix' ? this._mixState() : this._coilState(); if (!st) return;
+    const pal = ['#a371f7', '#2c9d8f', '#ff7b72', '#d2a8ff'];
+    this.setState(s => { const id = s.nextId; return { nextId: id + 1, activeId: id, points: [...s.points, { id, name: (s.procMode === 'mix' ? 'Mix ' : 'Coil ') + id, color: pal[s.points.length % pal.length], Tdb: +st.Tdb.toFixed(1), RH: +st.RH.toFixed(1), join: false, flow: 1.0 }] }; });
+  }
+
+  // ---------- room load -> required airflow (concept, item 2) ----------
+  _roomCalc() {
+    const s = this.state, P = this.P();
+    const room = this.buildState(s.roomTdb, this.W_from_RH(s.roomTdb, s.roomRH, P), P);
+    const Qs = s.roomQs, Ql = s.roomQl, tot = Qs + Ql;
+    const RSHF = tot !== 0 ? Qs / tot : 1;
+    const cpr = 1.006 + 1.86 * room.W;
+    const dT = Math.max(0.1, s.roomTdb - s.supplyTdb);
+    const mReq = Qs / (cpr * dT);
+    const wSa = Math.max(0, room.W - Ql / (mReq * 2501));
+    const supply = this.buildState(s.supplyTdb, wSa, P);
+    return { room, supply, RSHF, mReq, cmh: mReq * supply.v * 3600 };
+  }
+
+  // ---------- view / export ----------
+  _zoom(f) {
+    this.setState(s => {
+      const v = s.view, cT = (v.tmin + v.tmax) / 2;
+      let tmin = cT - (cT - v.tmin) * f, tmax = cT + (v.tmax - cT) * f, wmax = Math.max(6, Math.min(45, v.wmax * f));
+      tmin = Math.max(-15, tmin); tmax = Math.min(65, tmax);
+      return { view: { tmin: +tmin.toFixed(1), tmax: +tmax.toFixed(1), wmax: +wmax.toFixed(1) } };
+    });
+  }
+  _resetView() { this.setState({ view: { tmin: 0, tmax: 50, wmax: 30 } }); }
+  _csv() {
+    const ss = this._states();
+    const joinedSeq = ss.filter(s => s.join);
+    const capById = {};
+    joinedSeq.forEach((s, k) => { let next = joinedSeq[k + 1]; if (!next && this.state.closeLoop && joinedSeq.length > 1) next = joinedSeq[0]; if (next) capById[s.id] = ((s.flow || 0) / (s.v || 0.83)) * (next.h - s.h); });
+    const head = ['Name', 'Tdb_C', 'RH_%', 'Flow_m3/s', 'CFM', 'Cap_kW', 'Cap_BTU/h', 'W_g/kg', 'h_kJ/kg', 'Twb_C', 'Tdp_C', 'v_m3/kg'];
+    const rows = ss.map((s) => {
+      const capKw = capById[s.id] != null ? capById[s.id].toFixed(3) : '';
+      const cfm = ((s.flow || 0) * 2118.88).toFixed(0);
+      const capBtu = capKw === '' ? '' : (parseFloat(capKw) * 3412.142).toFixed(0);
+      return [s.name, s.Tdb.toFixed(1), s.RH.toFixed(1), (s.flow || 0).toFixed(2), cfm, capKw, capBtu, (s.W * 1000).toFixed(2), s.h.toFixed(2), s.Twb.toFixed(2), s.Tdp.toFixed(2), s.v.toFixed(4)].join(',');
+    });
+    const blob = new Blob([head.join(',') + '\n' + rows.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'psychro_points.csv'; a.click();
+  }
+
+  // ---------- i18n ----------
+  _t() {
+    const TH = {
+      appTitle: 'แผนภูมิไซโครเมตริก', appSub: 'เครื่องคำนวณ & วิเคราะห์อากาศ HVAC',
+      altitude: 'ความสูง', chartTitle: 'แผนภูมิ', pts: 'จุด', reset: 'รีเซ็ต',
+      selected: 'จุดที่เลือก', statePoints: 'จุดสภาวะอากาศ', addPoint: 'เพิ่มจุด', join: 'เชื่อม', point: 'จุด',
+      tdb: 'อุณหภูมิ', rh: 'ความชื้น', print: 'พิมพ์/PDF', flow: 'ปริมาณลม', cap: 'Capacity',
+      dragRow: 'กดค้างเพื่อย้ายลำดับ', lockHint: 'ปลด Join ก่อนจึงจะย้ายได้', closeLoop: 'ปิด Loop', loopFrom: 'จากจุด', loopTo: 'ไปจุด',
+      processTool: 'กระบวนการ', mix: 'ผสม', coil: 'คอยล์',
+      streamA: 'อากาศ A', streamB: 'อากาศ B', massFrac: 'สัดส่วนมวล', addAsPoint: 'เพิ่มเป็นจุด',
+      entering: 'อากาศเข้า', adp: 'ผิวคอยล์ ADP', bf: 'Bypass factor',
+      dragHint: 'ลากจุด · เลื่อนเมาส์อ่านค่า · ซูมด้วยปุ่ม',
+      footnote: 'ช่องสีฟ้าแก้ไขได้ · คอลัมน์อื่นคำนวณอัตโนมัติ · "เชื่อม" ลากจุดเป็นเส้นกระบวนการ',
+      layRh: 'RH', layEnth: 'Enthalpy', layWb: 'Wet bulb', layComfort: 'Comfort', laySat: 'Saturation',
+      procLoads: 'ภาระแต่ละกระบวนการ (Sensible / Latent / SHR)',
+      procLoadsNote: 'Total = ṁ·Δh · Sensible = ṁ·cp·ΔTdb · Latent = Total−Sensible · SHR = Qs/Qt · RT = |kW|/3.5168 — ต้องกด "เชื่อม" ให้จุดเป็นเส้นกระบวนการ',
+      roomLoad: 'ภาระห้อง → ปริมาณลม', roomLoadSub: 'แนวคิด — หา RSHF และปริมาณลมที่ต้องการ',
+      rSens: 'ภาระห้อง Sensible', rLat: 'ภาระห้อง Latent', roomT: 'ห้อง', supplyT: 'ลมจ่าย', reqAir: 'ปริมาณลมที่ต้องการ',
+      roomNote: 'RSHF = Qs/(Qs+Ql) · ปริมาณลม = Qs/[cp·(T_ห้อง−T_จ่าย)] → CMH · ΔT จ่ายแคบ ⇒ ลมเยอะ (เส้นประสีส้มบนกราฟ)',
+    };
+    const EN = {
+      appTitle: 'Psychrometric Chart', appSub: 'HVAC air calculator & analysis',
+      altitude: 'Altitude', chartTitle: 'Chart', pts: 'pts', reset: 'Reset',
+      selected: 'Selected', statePoints: 'State points', addPoint: 'Add', join: 'Join', point: 'Point',
+      tdb: 'Dry-bulb', rh: 'Rel. hum', print: 'Print/PDF', flow: 'Airflow', cap: 'Capacity',
+      dragRow: 'Hold & drag to reorder', lockHint: 'Unjoin first to reorder', closeLoop: 'Close loop', loopFrom: 'From point', loopTo: 'To point',
+      processTool: 'Process', mix: 'Mix', coil: 'Coil',
+      streamA: 'Stream A', streamB: 'Stream B', massFrac: 'Mass fraction', addAsPoint: 'Add as point',
+      entering: 'Entering air', adp: 'Coil ADP', bf: 'Bypass factor',
+      dragHint: 'Drag points · hover to read · zoom with buttons',
+      footnote: 'Blue fields are editable · other values auto-computed · "Join" links points into a process line',
+      layRh: 'RH', layEnth: 'Enthalpy', layWb: 'Wet bulb', layComfort: 'Comfort', laySat: 'Saturation',
+      procLoads: 'Process loads (Sensible / Latent / SHR)',
+      procLoadsNote: 'Total = ṁ·Δh · Sensible = ṁ·cp·ΔTdb · Latent = Total−Sensible · SHR = Qs/Qt · RT = |kW|/3.5168 — enable "Join" to form a process line',
+      roomLoad: 'Room load → airflow', roomLoadSub: 'Concept — find RSHF & required supply airflow',
+      rSens: 'Room sensible', rLat: 'Room latent', roomT: 'Room', supplyT: 'Supply', reqAir: 'Required airflow',
+      roomNote: 'RSHF = Qs/(Qs+Ql) · airflow = Qs/[cp·(T_room−T_supply)] → CMH · small supply ΔT ⇒ high airflow (orange dashed line on chart)',
+    };
+    return this.state.lang === 'th' ? TH : EN;
+  }
+
+  renderVals() {
+    const t = this._t();
+    const base = {
+      t, lang: this.state.lang,
+      altitude: this.state.altitude,
+      pressureStr: this.P().toFixed(2),
+      themeIcon: this.state.theme === 'dark' ? '☀' : '☾',
+      onAltitude: (e) => this.setState({ altitude: parseFloat(e.target.value) || 0 }),
+      onLangTH: () => this.setState({ lang: 'th' }), onLangEN: () => this.setState({ lang: 'en' }),
+      onTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      langThStyle: this._segStyle(this.state.lang === 'th'),
+      langEnStyle: this._segStyle(this.state.lang === 'en'),
+      chartWrap: (el) => this._refs.chartWrap = el,
+      canvas: (el) => this._refs.canvas = el,
+      tip: (el) => this._refs.tip = el,
+      tbodyRef: (el) => this._tbody = el,
+      onAddPoint: () => this._addPoint(),
+      onName: (e) => this._setName(+e.target.dataset.id, e.target.value),
+      onField: (e) => this._setField(+e.target.dataset.id, e.target.dataset.field, e.target.value),
+      onCSV: () => this._csv(), onPrint: () => window.print(),
+      onZoomIn: () => this._zoom(0.8), onZoomOut: () => this._zoom(1.25), onResetView: () => this._resetView(),
+      zoomBtnStyle: this._iconBtn(), resetBtnStyle: this._ghost(true),
+      ghostBtnStyle: this._ghost(false), selectStyle: this._select(), inputStyle: this._input(),
+      pointCount: this.state.points.length,
+    };
+    
+
+    const ss = this._states();
+    const active = ss.find(s => s.id === this.state.activeId) || ss[0] || {};
+    const f = (n, d) => (n == null || isNaN(n)) ? '—' : n.toFixed(d);
+
+    // readout grid
+    const readout = active.Tdb != null ? [
+      { label: t.tdb, value: f(active.Tdb, 1), unit: '°C', color: 'var(--accent)' },
+      { label: t.rh, value: f(active.RH, 0), unit: '%', color: 'var(--text)' },
+      { label: 'W', value: f(active.W * 1000, 2), unit: 'g/kg', color: 'var(--text)' },
+      { label: 'h', value: f(active.h, 1), unit: 'kJ/kg', color: 'var(--enth)' },
+      { label: 'Twb', value: f(active.Twb, 1), unit: '°C', color: 'var(--wb)' },
+      { label: 'Tdp', value: f(active.Tdp, 1), unit: '°C', color: 'var(--text)' },
+    ] : [];
+
+    // markers
+    const markers = this._plot ? ss.map(s => {
+      const x = this.px(s.Tdb), y = this.py(s.W);
+      const isAct = s.id === this.state.activeId;
+      const sz = isAct ? 22 : 18;
+      return {
+        id: s.id, name: s.name,
+        onDown: (e) => this._markerDown(e, s.id),
+        dotStyle: { position: 'absolute', left: (x - sz / 2) + 'px', top: (y - sz / 2) + 'px', width: sz + 'px', height: sz + 'px', borderRadius: '50%', background: s.color, border: '3px solid ' + (this.state.theme === 'dark' ? '#0f1620' : '#fff'), boxShadow: isAct ? '0 0 0 4px ' + s.color + '55, 0 3px 8px rgba(0,0,0,.5)' : '0 2px 6px rgba(0,0,0,.45)', cursor: 'grab', pointerEvents: 'auto', touchAction: 'none', zIndex: isAct ? 12 : 8, transition: 'width .1s,height .1s' },
+        labelStyle: { position: 'absolute', left: (x + 14) + 'px', top: (y - 9) + 'px', fontSize: '11px', fontWeight: 600, color: s.color, textShadow: '0 1px 3px rgba(0,0,0,.6)', pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 9 },
+      };
+    }) : [];
+
+    // cards
+    // capacity per joined segment (to the next joined point; last->first if loop closed)
+    const joinedSeq = ss.filter(s => s.join);
+    const capById = {};
+    joinedSeq.forEach((s, k) => {
+      const next = joinedSeq[k + 1];
+      if (next) capById[s.id] = ((s.flow || 0) / (s.v || 0.83)) * (next.h - s.h);
+    });
+
+    // per-segment Sensible / Latent / SHR / RT (item 1)
+    const segLoads = [];
+    joinedSeq.forEach((s, k) => {
+      let next = joinedSeq[k + 1];
+      if (!next && this.state.closeLoop && joinedSeq.length > 1) next = joinedSeq[0];
+      if (!next) return;
+      const mdot = (s.flow || 0) / (s.v || 0.83);
+      const Qt = mdot * (next.h - s.h);
+      const wbar = (s.W + next.W) / 2;
+      const Qs = mdot * (1.006 + 1.86 * wbar) * (next.Tdb - s.Tdb);
+      const Ql = Qt - Qs;
+      const shr = Qt !== 0 ? Qs / Qt : 1;
+      const sg = (v) => (v >= 0 ? '+' : '') + v.toFixed(2);
+      segLoads.push({
+        key: s.id + '-' + next.id, name: s.name + ' → ' + next.name, color: next.color,
+        totalStr: sg(Qt), sensStr: sg(Qs), latStr: sg(Ql),
+        shrStr: isFinite(shr) ? shr.toFixed(2) : '—',
+        rtStr: (Math.abs(Qt) / 3.5168).toFixed(2),
+        totalColor: Qt >= 0 ? 'var(--danger)' : 'var(--wb)',
+      });
+    });
+
+    // room load -> required airflow (item 2 concept)
+    const rc = this._roomCalc();
+    const roomVals = {
+      roomQs: this.state.roomQs, roomQl: this.state.roomQl, roomTdb: this.state.roomTdb,
+      roomRH: this.state.roomRH, supplyTdb: this.state.supplyTdb,
+      roomRshf: rc.RSHF.toFixed(3),
+      roomCmh: isFinite(rc.cmh) ? Math.round(rc.cmh).toLocaleString() : '—',
+      roomCfm: isFinite(rc.cmh) ? Math.round(rc.cmh / 1.699).toLocaleString() : '—',
+      roomSupply: this.state.supplyTdb.toFixed(1) + '°C / ' + rc.supply.RH.toFixed(0) + '%',
+      onRoomQs: (e) => this.setState({ roomQs: parseFloat(e.target.value) || 0 }),
+      onRoomQl: (e) => this.setState({ roomQl: parseFloat(e.target.value) || 0 }),
+      onRoomTdb: (e) => this.setState({ roomTdb: parseFloat(e.target.value) || 0 }),
+      onRoomRH: (e) => this.setState({ roomRH: parseFloat(e.target.value) || 0 }),
+      onSupplyTdb: (e) => this.setState({ supplyTdb: parseFloat(e.target.value) || 0 }),
+    };
+
+    const cards = ss.map((s, idx) => {
+      const isAct = s.id === this.state.activeId;
+      const isDrag = s.id === this.state.dragId;
+      const locked = s.join;
+      const capKw = capById[s.id] != null ? capById[s.id] : null;
+      const cfm = (s.flow || 0) * 2118.88;
+      return {
+        id: s.id, name: s.name, color: s.color,
+        tdb: s.Tdb, rh: +s.RH.toFixed(1), flow: s.flow != null ? s.flow : 0,
+        rowStyle: { display: 'grid', gridTemplateColumns: 'minmax(118px,1.4fr) 62px 56px 62px 54px 64px 64px 26px', borderBottom: '1px solid var(--border)', background: isDrag ? 'var(--panel-3)' : (isAct ? 'var(--accent-soft)' : 'transparent'), cursor: 'pointer', transition: 'background .12s', boxShadow: isDrag ? '0 4px 14px rgba(0,0,0,.35)' : 'none' },
+        editCell: { width: '100%', minWidth: '52px', textAlign: 'right', background: 'var(--panel)', border: '1px solid ' + (isAct ? s.color : 'var(--border-2)'), borderRadius: '7px', color: 'var(--accent)', fontFamily: "'IBM Plex Mono',monospace", fontSize: '14px', fontWeight: 600, padding: '6px 7px' },
+        joinDot: { width: '20px', height: '20px', borderRadius: '6px', background: s.join ? 'var(--accent-soft)' : 'transparent', color: s.join ? 'var(--accent)' : 'var(--text-mute)', border: '1px solid ' + (s.join ? 'var(--accent)' : 'var(--border)'), fontSize: '11px', cursor: 'pointer', flex: 'none', lineHeight: 1, fontFamily: 'inherit' },
+        cfmStr: cfm > 0 ? Math.round(cfm).toLocaleString() : '—',
+        capKwStr: capKw == null ? '—' : (capKw >= 0 ? '+' : '') + capKw.toFixed(2),
+        capBtuStr: capKw == null ? '—' : Math.round(capKw * 3412.142).toLocaleString(),
+        capColor: capKw == null ? 'var(--text-mute)' : (capKw >= 0 ? 'var(--danger)' : 'var(--wb)'),
+        onColor: () => this._cycleColor(s.id),
+        onJoin: () => this._toggleJoin(s.id),
+        onRemove: () => this._removePoint(s.id),
+        onFocus: () => this.setState({ activeId: s.id }),
+        onDragStart: (e) => this._rowDragStart(e, s.id),
+        gripIcon: locked ? '🔒' : '⠿',
+        gripStyle: { fontSize: locked ? '11px' : '14px', lineHeight: 1, color: locked ? 'var(--text-mute)' : 'var(--text-dim)', cursor: locked ? 'not-allowed' : 'grab', opacity: locked ? 0.5 : 1, touchAction: 'none', userSelect: 'none', flex: 'none', padding: '0 1px' },
+        dragTitle: locked ? t.lockHint : t.dragRow,
+      };
+    });
+
+    // layer chips
+    const Lk = [['sat', t.laySat, 'var(--sat)'], ['rh', t.layRh, 'var(--rh)'], ['enth', t.layEnth, 'var(--enth)'], ['wb', t.layWb, 'var(--wb)'], ['comfort', t.layComfort, 'var(--comfort-line)']];
+    const layerChips = Lk.map(([key, label, color]) => ({
+      label, color, onClick: () => this.setState(st => ({ layers: { ...st.layers, [key]: !st.layers[key] } })),
+      style: this._layerChipStyle(this.state.layers[key]),
+    }));
+
+    const pointOpts = this.state.points.map(p => ({ id: p.id, name: p.name }));
+    const mixSt = this._mixState(), coilSt = this._coilState();
+    const fmt = (st) => st ? `Tdb ${st.Tdb.toFixed(1)}°C · ${st.RH.toFixed(0)}% · W ${(st.W * 1000).toFixed(2)} · h ${st.h.toFixed(1)}` : '—';
+
+    // close-loop: user-selectable from -> to, shown separately (never overwrites table rows)
+    const hasPts = this.state.points.length > 1;
+    const le = this._loopEnds();
+    const loopFromVal = this.state.loopFrom != null ? this.state.loopFrom : (joinedSeq.length ? joinedSeq[joinedSeq.length - 1].id : (this.state.points[0] && this.state.points[0].id));
+    const loopToVal = this.state.loopTo != null ? this.state.loopTo : (joinedSeq.length ? joinedSeq[0].id : (this.state.points[0] && this.state.points[0].id));
+    let loopCapStr, loopHint;
+    if (!hasPts) { loopHint = this.state.lang === 'th' ? 'ต้องมี ≥2 จุด' : 'need ≥2 points'; loopCapStr = '—'; }
+    else if (!this.state.closeLoop) { loopHint = this.state.lang === 'th' ? 'เลือกจุดเพื่อปิดลูป' : 'pick points to close'; loopCapStr = ''; }
+    else if (le) {
+      const cap = ((le.from.flow || 0) / (le.from.v || 0.83)) * (le.to.h - le.from.h);
+      const btu = cap * 3412.142;
+      loopCapStr = `${le.from.name} → ${le.to.name}   ${(cap >= 0 ? '+' : '') + cap.toFixed(2)} kW · ${Math.round(btu).toLocaleString()} BTU/h`;
+      loopHint = '';
+    } else { loopHint = this.state.lang === 'th' ? 'เลือกจุดต่างกัน' : 'pick two different points'; loopCapStr = '—'; }
+
+    return {
+      ...base, ready: true, active, readout, markers, cards, layerChips, pointOpts,
+      segLoads, hasSegLoads: segLoads.length > 0, ...roomVals,
+      isMix: this.state.procMode === 'mix', isCoil: this.state.procMode === 'coil',
+      mixTabStyle: this._segStyle(this.state.procMode === 'mix'),
+      coilTabStyle: this._segStyle(this.state.procMode === 'coil'),
+      onModeMix: () => this.setState({ procMode: 'mix' }), onModeCoil: () => this.setState({ procMode: 'coil' }),
+      mixA: this.state.mixA, mixB: this.state.mixB, mixFrac: this.state.mixFrac, mixFracPct: this.state.mixFrac,
+      onMixA: (e) => this.setState({ mixA: +e.target.value }), onMixB: (e) => this.setState({ mixB: +e.target.value }),
+      onMixFrac: (e) => this.setState({ mixFrac: +e.target.value }),
+      mixResult: fmt(mixSt),
+      coilIn: this.state.coilIn, coilAdp: this.state.coilAdp, coilBf: this.state.coilBf,
+      onCoilIn: (e) => this.setState({ coilIn: +e.target.value }),
+      onCoilAdp: (e) => this.setState({ coilAdp: parseFloat(e.target.value) || 0 }),
+      onCoilBf: (e) => this.setState({ coilBf: parseFloat(e.target.value) || 0 }),
+      coilResult: fmt(coilSt),
+      onAddResult: () => this._addResult(),
+      closeLoop: this.state.closeLoop,
+      onCloseLoop: () => { if (hasPts) this.setState(s => ({ closeLoop: !s.closeLoop })); },
+      loopBtnStyle: this._chipBtn(this.state.closeLoop && hasPts),
+      loopFrom: loopFromVal, loopTo: loopToVal,
+      onLoopFrom: (e) => this.setState({ loopFrom: +e.target.value }),
+      onLoopTo: (e) => this.setState({ loopTo: +e.target.value }),
+      loopCapStr, loopHint,
+    };
+  }
+
+  // ---------- style helpers ----------
+  _segStyle(on) { return { background: on ? 'var(--accent)' : 'transparent', color: on ? '#fff' : 'var(--text-dim)', border: 'none', borderRadius: '7px', padding: '6px 13px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }; }
+  _iconBtn() { return { width: '30px', height: '30px', borderRadius: '8px', background: 'var(--panel-2)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: '17px', cursor: 'pointer', lineHeight: 1 }; }
+  _ghost(small) { return { background: 'var(--panel-2)', border: '1px solid var(--border)', color: 'var(--text-dim)', borderRadius: small ? '8px' : '9px', padding: small ? '6px 11px' : '8px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flex: small ? 'none' : 1 }; }
+  _chipBtn(on) { return { background: on ? 'var(--accent-soft)' : 'transparent', color: on ? 'var(--accent)' : 'var(--text-mute)', border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border)'), borderRadius: '7px', padding: '4px 8px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flex: 'none' }; }
+  _layerChipStyle(on) { return { display: 'flex', alignItems: 'center', gap: '5px', background: on ? 'var(--panel-3)' : 'transparent', color: on ? 'var(--text)' : 'var(--text-mute)', border: '1px solid ' + (on ? 'var(--border-2)' : 'var(--border)'), borderRadius: '7px', padding: '4px 9px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: on ? 1 : 0.55 }; }
+  _select() { return { width: '100%', background: 'var(--panel-2)', border: '1px solid var(--border-2)', borderRadius: '9px', color: 'var(--text)', fontSize: '12.5px', padding: '8px 9px', fontFamily: 'inherit', cursor: 'pointer' }; }
+  _input() { return { width: '100%', background: 'var(--panel-2)', border: '1px solid var(--border-2)', borderRadius: '9px', color: 'var(--accent)', fontFamily: "'IBM Plex Mono',monospace", fontSize: '14px', padding: '8px 9px' }; }
+}
+</script>
+</body>
+</html>
