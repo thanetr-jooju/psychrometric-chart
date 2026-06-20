@@ -149,6 +149,42 @@
         </div>
       </div>
 
+      <!-- DESIGN PRESETS (item 5) -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px 15px;">
+        <div style="font-size:13px;font-weight:600;">{{ t.designPresets }}</div>
+        <div style="font-size:10.5px;color:var(--text-mute);margin:2px 0 11px;">{{ t.applyToActive }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.oaCity }}</div>
+            <select value="{{ oaSel }}" onChange="{{ onOaPreset }}" style="{{ selectStyle }}">
+              <option value="">—</option>
+              <sc-for list="{{ oaOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.key }}">{{ o.name }}</option></sc-for>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.indoorPreset }}</div>
+            <select value="{{ inSel }}" onChange="{{ onIndoorPreset }}" style="{{ selectStyle }}">
+              <option value="">—</option>
+              <sc-for list="{{ indoorOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.key }}">{{ o.name }}</option></sc-for>
+            </select>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);margin:12px 0;"></div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;">{{ t.ventTitle }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:9px;">
+          <div><div style="font-size:10px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.occupants }}</div><input type="number" step="1" value="{{ ventOcc }}" onChange="{{ onVentOcc }}" style="{{ inputStyle }}" /></div>
+          <div><div style="font-size:10px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.floorArea }} m²</div><input type="number" step="1" value="{{ ventArea }}" onChange="{{ onVentArea }}" style="{{ inputStyle }}" /></div>
+          <div><div style="font-size:10px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">{{ t.supplyAir }} CMH</div><input type="number" step="10" value="{{ ventSupply }}" onChange="{{ onVentSupply }}" style="{{ inputStyle }}" /></div>
+          <div><div style="font-size:10px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">Rp L/s·คน</div><input type="number" step="0.1" value="{{ ventRp }}" onChange="{{ onVentRp }}" style="{{ inputStyle }}" /></div>
+          <div><div style="font-size:10px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">Ra L/s·m²</div><input type="number" step="0.05" value="{{ ventRa }}" onChange="{{ onVentRa }}" style="{{ inputStyle }}" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;"><div style="font-size:10px;color:var(--text-dim);font-weight:600;">{{ t.reqOA }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);">{{ ventOaCmh }}</div><div style="font-size:9.5px;color:var(--text-mute);">CMH · {{ ventLps }} L/s · {{ ventOaCfm }} CFM</div></div>
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;"><div style="font-size:10px;color:var(--text-dim);font-weight:600;">%OA</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;">{{ ventPct }}%</div><div style="font-size:9.5px;color:var(--text-mute);">OA / Supply</div></div>
+        </div>
+        <div style="font-size:10px;color:var(--text-mute);line-height:1.6;margin-top:9px;">{{ t.presetNote }}</div>
+      </div>
+
       <!-- STATE POINTS CARD -->
       <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px 15px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
@@ -399,6 +435,8 @@ class Component extends DCLogic {
     coilIn: 1, coilAdp: 11, coilBf: 0.12,
     // room-load → required airflow (concept, item 2)
     roomQs: 8, roomQl: 2, roomTdb: 24, roomRH: 50, supplyTdb: 14,
+    // design presets + ventilation (item 5)
+    oaSel: '', inSel: '', ventOcc: 20, ventArea: 100, ventRp: 2.5, ventRa: 0.3, ventSupply: 2000,
   };
 
   // ---------- psychrometric math (ASHRAE) ----------
@@ -824,6 +862,45 @@ class Component extends DCLogic {
     return { room, supply, RSHF, mReq, cmh: mReq * supply.v * 3600 };
   }
 
+  // ---------- design presets + ventilation (item 5) ----------
+  _oaPresets() {
+    return [
+      { key: 'bkk', name: 'กรุงเทพ Bangkok', db: 35.0, wb: 27.5 },
+      { key: 'cnx', name: 'เชียงใหม่ Chiang Mai', db: 36.5, wb: 26.0 },
+      { key: 'hkt', name: 'ภูเก็ต Phuket', db: 33.5, wb: 27.5 },
+      { key: 'kkc', name: 'ขอนแก่น Khon Kaen', db: 37.0, wb: 26.5 },
+      { key: 'hdy', name: 'หาดใหญ่ Hat Yai', db: 34.5, wb: 27.5 },
+      { key: 'nma', name: 'นครราชสีมา Korat', db: 37.0, wb: 26.5 },
+      { key: 'ryg', name: 'ระยอง Rayong', db: 34.5, wb: 28.0 },
+      { key: 'udn', name: 'อุดรธานี Udon Thani', db: 37.0, wb: 27.0 },
+    ];
+  }
+  _indoorPresets() {
+    return [
+      { key: 'comfort1', name: 'Comfort 24°C / 55%', db: 24, rh: 55 },
+      { key: 'comfort2', name: 'Comfort 25°C / 50%', db: 25, rh: 50 },
+      { key: 'cleanroom', name: 'Cleanroom 22°C / 45%', db: 22, rh: 45 },
+      { key: 'datacenter', name: 'Data center 24°C / 50%', db: 24, rh: 50 },
+      { key: 'or', name: 'ห้องผ่าตัด OR 21°C / 55%', db: 21, rh: 55 },
+    ];
+  }
+  _applyOA(key) {
+    const p = this._oaPresets().find(x => x.key === key); if (!p) { this.setState({ oaSel: '' }); return; }
+    const P = this.P(), W = this.W_from_Twb(p.db, p.wb, P);
+    const RH = Math.min(100, Math.max(0, this.RH_from_W(p.db, W, P)));
+    this.setState(s => ({ oaSel: key, points: s.points.map(pt => pt.id === s.activeId ? { ...pt, Tdb: +p.db.toFixed(1), RH: +RH.toFixed(1) } : pt) }));
+  }
+  _applyIndoor(key) {
+    const p = this._indoorPresets().find(x => x.key === key); if (!p) { this.setState({ inSel: '' }); return; }
+    this.setState(s => ({ inSel: key, points: s.points.map(pt => pt.id === s.activeId ? { ...pt, Tdb: p.db, RH: p.rh } : pt) }));
+  }
+  _ventCalc() {
+    const s = this.state, n = (v) => { const x = parseFloat(v); return isNaN(x) ? 0 : x; };
+    const lps = n(s.ventRp) * n(s.ventOcc) + n(s.ventRa) * n(s.ventArea);
+    const oaCmh = lps * 3.6, sup = n(s.ventSupply);
+    return { lps, oaCmh, oaCfm: oaCmh / 1.699, pct: sup > 0 ? oaCmh / sup * 100 : 0 };
+  }
+
   // ---------- view / export ----------
   _zoom(f) {
     this.setState(s => {
@@ -869,6 +946,10 @@ class Component extends DCLogic {
       roomLoad: 'ภาระห้อง → ปริมาณลม', roomLoadSub: 'แนวคิด — หา RSHF และปริมาณลมที่ต้องการ',
       rSens: 'ภาระห้อง Sensible', rLat: 'ภาระห้อง Latent', roomT: 'ห้อง', supplyT: 'ลมจ่าย', reqAir: 'ปริมาณลมที่ต้องการ',
       roomNote: 'RSHF = Qs/(Qs+Ql) · ปริมาณลม = Qs/[cp·(T_ห้อง−T_จ่าย)] → CMH · ΔT จ่ายแคบ ⇒ ลมเยอะ (เส้นประสีส้มบนกราฟ)',
+      designPresets: 'Preset เงื่อนไขออกแบบ', applyToActive: 'เลือกจุดในตารางก่อน แล้ว preset จะใส่ค่าให้จุดนั้น (active)',
+      oaCity: 'อากาศนอก OA — เมือง (DB/WB ~0.4%)', indoorPreset: 'ภายในอาคาร Indoor',
+      ventTitle: 'อากาศภายนอก ASHRAE 62.1', occupants: 'จำนวนคน', floorArea: 'พื้นที่', supplyAir: 'ลมจ่าย',
+      reqOA: 'OA ที่ต้องการ', presetNote: 'ค่า OA เมืองเป็นค่าอ้างอิง ~ASHRAE 0.4% แก้ได้ — ตรวจกับ ashrae-meteo.info ก่อนใช้ออกแบบจริง · Vbz = Rp·คน + Ra·พื้นที่',
     };
     const EN = {
       appTitle: 'Psychrometric Chart', appSub: 'HVAC air calculator & analysis',
@@ -887,6 +968,10 @@ class Component extends DCLogic {
       roomLoad: 'Room load → airflow', roomLoadSub: 'Concept — find RSHF & required supply airflow',
       rSens: 'Room sensible', rLat: 'Room latent', roomT: 'Room', supplyT: 'Supply', reqAir: 'Required airflow',
       roomNote: 'RSHF = Qs/(Qs+Ql) · airflow = Qs/[cp·(T_room−T_supply)] → CMH · small supply ΔT ⇒ high airflow (orange dashed line on chart)',
+      designPresets: 'Design presets', applyToActive: 'Select a point first; the preset fills that (active) point',
+      oaCity: 'Outdoor OA — city (DB/WB ~0.4%)', indoorPreset: 'Indoor',
+      ventTitle: 'Outdoor air — ASHRAE 62.1', occupants: 'Occupants', floorArea: 'Floor area', supplyAir: 'Supply',
+      reqOA: 'Required OA', presetNote: 'City OA values are indicative ~ASHRAE 0.4% (editable) — verify on ashrae-meteo.info before design · Vbz = Rp·people + Ra·area',
     };
     return this.state.lang === 'th' ? TH : EN;
   }
@@ -916,7 +1001,7 @@ class Component extends DCLogic {
       ghostBtnStyle: this._ghost(false), selectStyle: this._select(), inputStyle: this._input(),
       pointCount: this.state.points.length,
     };
-    
+
 
     const ss = this._states();
     const active = ss.find(s => s.id === this.state.activeId) || ss[0] || {};
@@ -992,6 +1077,22 @@ class Component extends DCLogic {
       onSupplyTdb: (e) => this.setState({ supplyTdb: e.target.value }),
     };
 
+    // design presets + ventilation (item 5)
+    const vent = this._ventCalc();
+    const presetVals = {
+      oaOpts: this._oaPresets().map(p => ({ key: p.key, name: p.name + '  (' + p.db.toFixed(1) + '/' + p.wb.toFixed(1) + ')' })),
+      indoorOpts: this._indoorPresets().map(p => ({ key: p.key, name: p.name })),
+      oaSel: this.state.oaSel, inSel: this.state.inSel,
+      onOaPreset: (e) => this._applyOA(e.target.value),
+      onIndoorPreset: (e) => this._applyIndoor(e.target.value),
+      ventOcc: this.state.ventOcc, ventArea: this.state.ventArea, ventRp: this.state.ventRp, ventRa: this.state.ventRa, ventSupply: this.state.ventSupply,
+      onVentOcc: (e) => this.setState({ ventOcc: e.target.value }), onVentArea: (e) => this.setState({ ventArea: e.target.value }),
+      onVentRp: (e) => this.setState({ ventRp: e.target.value }), onVentRa: (e) => this.setState({ ventRa: e.target.value }),
+      onVentSupply: (e) => this.setState({ ventSupply: e.target.value }),
+      ventOaCmh: Math.round(vent.oaCmh).toLocaleString(), ventOaCfm: Math.round(vent.oaCfm).toLocaleString(),
+      ventLps: vent.lps.toFixed(1), ventPct: vent.pct.toFixed(1),
+    };
+
     const cards = ss.map((s, idx) => {
       const isAct = s.id === this.state.activeId;
       const isDrag = s.id === this.state.dragId;
@@ -1047,7 +1148,7 @@ class Component extends DCLogic {
 
     return {
       ...base, ready: true, active, readout, markers, cards, layerChips, pointOpts,
-      segLoads, hasSegLoads: segLoads.length > 0, ...roomVals,
+      segLoads, hasSegLoads: segLoads.length > 0, ...roomVals, ...presetVals,
       isMix: this.state.procMode === 'mix', isCoil: this.state.procMode === 'coil',
       mixTabStyle: this._segStyle(this.state.procMode === 'mix'),
       coilTabStyle: this._segStyle(this.state.procMode === 'coil'),
